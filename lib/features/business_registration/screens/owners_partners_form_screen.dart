@@ -487,9 +487,21 @@ class _OwnersPartnersFormScreenState
                 flex: 3,
                 child: TextFormField(
                   controller: _nicController,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: AppColors.textPrimary,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'NIC Number *',
+                    labelStyle: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
                     hintText: 'e.g. 123456789V',
+                    hintStyle: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                    ),
                     filled: true,
                     fillColor: AppColors.backgroundLight,
                     border: OutlineInputBorder(
@@ -506,6 +518,10 @@ class _OwnersPartnersFormScreenState
                         color: AppColors.primary,
                         width: 2,
                       ),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error),
                     ),
                   ),
                   validator: (value) {
@@ -567,13 +583,33 @@ class _OwnersPartnersFormScreenState
           // Full Name (auto-filled from NIC validation)
           TextFormField(
             controller: _fullNameController,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: AppColors.textPrimary,
+            ),
             decoration: InputDecoration(
               labelText: 'Full Name *',
+              labelStyle: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
               filled: true,
               fillColor: AppColors.backgroundLight,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.borderLight),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.borderLight),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.error),
               ),
             ),
             validator: (value) {

@@ -45,10 +45,21 @@ class AppColors {
     0xFF9CA3AF,
   ); // Light gray for light theme
 
-  // Light Theme Background Colors
-  static const Color backgroundLight = Color(0xFFFAFAFA); // Light background
-  static const Color surfaceLight = Color(0xFFFFFFFF); // Light surface
-  static const Color cardLight = Color(0xFFFFFFFF); // Light card background
+  // Light Theme Background Colors (renamed for clarity)
+  static const Color backgroundLight = Color(
+    0xFF2D2D2D,
+  ); // Dark card background for dark theme
+  static const Color surfaceLight = Color(0xFF1E1E1E); // Dark surface
+  static const Color cardLight = Color(0xFF2D2D2D); // Dark card background
+
+  // Actual Light Theme Colors
+  static const Color backgroundLightTheme = Color(
+    0xFFFAFAFA,
+  ); // Light background
+  static const Color surfaceLightTheme = Color(0xFFFFFFFF); // Light surface
+  static const Color cardLightTheme = Color(
+    0xFFFFFFFF,
+  ); // Light card background
 
   // Status Colors
   static const Color success = Color(0xFF10B981);

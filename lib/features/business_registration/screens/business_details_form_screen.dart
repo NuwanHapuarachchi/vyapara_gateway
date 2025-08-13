@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/neumorphic_widgets.dart';
 import '../models/business_registration_model.dart';
 import '../providers/business_registration_provider.dart';
+import '../widgets/themed_text_field.dart';
 
 class BusinessDetailsFormScreen extends ConsumerStatefulWidget {
   final VoidCallback onNext;
@@ -137,10 +138,11 @@ class _BusinessDetailsFormScreenState
                     _buildSectionHeader('Business Information'),
                     const SizedBox(height: 16),
 
-                    _buildTextField(
+                    ThemedTextField(
                       controller: _businessNameController,
-                      label: 'Business Name *',
-                      hint: 'Enter your business name',
+                      labelText: 'Business Name *',
+                      hintText: 'Enter your business name',
+                      isRequired: true,
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Business name is required';
@@ -151,19 +153,20 @@ class _BusinessDetailsFormScreenState
 
                     const SizedBox(height: 16),
 
-                    _buildTextField(
+                    ThemedTextField(
                       controller: _proposedTradeNameController,
-                      label: 'Proposed Trade Name (Optional)',
-                      hint: 'Enter proposed trade name',
+                      labelText: 'Proposed Trade Name (Optional)',
+                      hintText: 'Enter proposed trade name',
                     ),
 
                     const SizedBox(height: 16),
 
-                    _buildTextField(
+                    ThemedTextField(
                       controller: _natureOfBusinessController,
-                      label: 'Nature of Business *',
-                      hint: 'Describe your business activities',
+                      labelText: 'Nature of Business *',
+                      hintText: 'Describe your business activities',
                       maxLines: 3,
+                      isRequired: true,
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Nature of business is required';
@@ -236,8 +239,8 @@ class _BusinessDetailsFormScreenState
 
                     const SizedBox(height: 16),
 
-                    _buildDropdownField(
-                      label: 'Province *',
+                    ThemedDropdownField(
+                      labelText: 'Province *',
                       value: _selectedProvince,
                       items: provinces,
                       onChanged: (value) {
@@ -256,8 +259,8 @@ class _BusinessDetailsFormScreenState
 
                     const SizedBox(height: 16),
 
-                    _buildDropdownField(
-                      label: 'District *',
+                    ThemedDropdownField(
+                      labelText: 'District *',
                       value: _selectedDistrict,
                       items: _selectedProvince != null
                           ? districts[_selectedProvince!] ?? []

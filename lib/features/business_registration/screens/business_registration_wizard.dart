@@ -33,6 +33,12 @@ class _BusinessRegistrationWizardState
   }
 
   void _nextStep() {
+    // Validate current step before allowing navigation
+    if (!_canProceedToNextStep()) {
+      _showStepValidationError();
+      return;
+    }
+
     if (_currentStep.index < BusinessRegistrationStep.values.length - 1) {
       setState(() {
         _currentStep = BusinessRegistrationStep.values[_currentStep.index + 1];
@@ -42,6 +48,65 @@ class _BusinessRegistrationWizardState
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  bool _canProceedToNextStep() {
+    final registration = ref.read(businessRegistrationProvider);
+    
+    switch (_currentStep) {
+      case BusinessRegistrationStep.businessType:
+        return registration?.businessType.id.isNotEmpty == true;
+      
+      case BusinessRegistrationStep.businessDetails:
+        return registration != null &&
+            registration.businessName.isNotEmpty &&
+            registration.natureOfBusiness.isNotEmpty &&
+            registration.businessAddress.addressLine1.isNotEmpty &&
+            registration.businessAddress.city.isNotEmpty &&
+            registration.businessAddress.district.isNotEmpty &&
+            registration.businessAddress.province.isNotEmpty &&
+            registration.businessAddress.postalCode.isNotEmpty;
+      
+      case BusinessRegistrationStep.ownersPartners:
+        return registration?.owners.isNotEmpty == true;
+      
+      case BusinessRegistrationStep.documentUpload:
+        final requiredDocs = registration?.businessType.requiredDocuments ?? [];
+        final uploadedDocs = registration?.uploadedDocuments ?? {};
+        return requiredDocs.every((doc) => uploadedDocs.containsKey(doc));
+      
+      case BusinessRegistrationStep.reviewSubmit:
+        return true; // Last step, always allow
+    }
+  }
+
+  void _showStepValidationError() {
+    String message;
+    switch (_currentStep) {
+      case BusinessRegistrationStep.businessType:
+        message = 'Please select a business type to continue';
+        break;
+      case BusinessRegistrationStep.businessDetails:
+        message = 'Please complete all required business details';
+        break;
+      case BusinessRegistrationStep.ownersPartners:
+        message = 'Please add at least one business owner';
+        break;
+      case BusinessRegistrationStep.documentUpload:
+        message = 'Please upload all required documents';
+        break;
+      case BusinessRegistrationStep.reviewSubmit:
+        message = 'Please review and submit your application';
+        break;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _previousStep() {
@@ -57,14 +122,19 @@ class _BusinessRegistrationWizardState
   }
 
   void _goToStep(BusinessRegistrationStep step) {
-    setState(() {
-      _currentStep = step;
-    });
-    _pageController.animateToPage(
-      step.index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    // Only allow going to previous steps or current step
+    if (step.index <= _currentStep.index) {
+      setState(() {
+        _currentStep = step;
+      });
+      _pageController.animateToPage(
+        step.index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _showStepValidationError();
+    }
   }
 
   @override
@@ -161,7 +231,9 @@ class _BusinessRegistrationWizardState
               final isCurrent = step == _currentStep;
 
               return GestureDetector(
-                onTap: () => _goToStep(step),
+                onTap: step.index <= _currentStep.index 
+                    ? () => _goToStep(step) 
+                    : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   width: 40,
@@ -170,7 +242,9 @@ class _BusinessRegistrationWizardState
                     shape: BoxShape.circle,
                     color: isActive
                         ? AppColors.primary
-                        : AppColors.backgroundLight,
+                        : step.index > _currentStep.index
+                            ? AppColors.backgroundLight.withOpacity(0.5)
+                            : AppColors.backgroundLight,
                     border: isCurrent
                         ? Border.all(color: AppColors.accent, width: 2)
                         : null,
@@ -189,7 +263,9 @@ class _BusinessRegistrationWizardState
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
+                              color: step.index > _currentStep.index
+                                  ? AppColors.textSecondary.withOpacity(0.5)
+                                  : AppColors.textSecondary,
                             ),
                           ),
                   ),

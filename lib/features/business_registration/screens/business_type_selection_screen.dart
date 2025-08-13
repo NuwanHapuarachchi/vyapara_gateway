@@ -52,9 +52,9 @@ class _BusinessTypeSelectionScreenState
   }
 
   Widget _buildBusinessTypesList(List<BusinessType> businessTypes) {
-    return ListView.separated(
+    return ListView.builder(
       itemCount: businessTypes.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       itemBuilder: (context, index) {
         final businessType = businessTypes[index];
         final isSelected = _selectedBusinessType?.id == businessType.id;
@@ -65,117 +65,127 @@ class _BusinessTypeSelectionScreenState
   }
 
   Widget _buildBusinessTypeCard(BusinessType businessType, bool isSelected) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedBusinessType = businessType;
-        });
-        widget.onTypeSelected(businessType);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
-              : AppColors.backgroundLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.borderLight,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _getBusinessTypeColor(
-                      businessType.type,
-                    ).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getBusinessTypeIcon(businessType.type),
-                    color: _getBusinessTypeColor(businessType.type),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        businessType.displayName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        businessType.description,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isSelected)
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-              ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedBusinessType = businessType;
+          });
+          widget.onTypeSelected(businessType);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.15)
+                : const Color(0xFF2D2D2D), // Dark card background
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.borderLight,
+              width: isSelected ? 2 : 1,
             ),
-
-            const SizedBox(height: 16),
-
-            // Processing time and fee
-            Row(
-              children: [
-                _buildInfoChip(
-                  Icons.schedule,
-                  '${businessType.estimatedProcessingDays} days',
-                  Colors.orange,
-                ),
-                const SizedBox(width: 12),
-                _buildInfoChip(
-                  Icons.payment,
-                  'LKR ${businessType.baseFee.toStringAsFixed(2)}',
-                  Colors.green,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Required documents count
-            Text(
-              '${businessType.requiredDocuments.length} documents required',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                fontStyle: FontStyle.italic,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: _getBusinessTypeColor(
+                        businessType.type,
+                      ).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getBusinessTypeIcon(businessType.type),
+                      color: _getBusinessTypeColor(businessType.type),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          businessType.displayName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          businessType.description,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSelected)
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Processing time and fee
+              Row(
+                children: [
+                  _buildInfoChip(
+                    Icons.schedule,
+                    '${businessType.estimatedProcessingDays} days',
+                    Colors.orange,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildInfoChip(
+                    Icons.payment,
+                    'LKR ${businessType.baseFee.toStringAsFixed(2)}',
+                    Colors.green,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Required documents count
+              Text(
+                '${businessType.requiredDocuments.length} documents required',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
