@@ -51,7 +51,7 @@ class _SupabaseTestScreenState extends ConsumerState<SupabaseTestScreen> {
                       'Status: $_connectionStatus',
                       style: TextStyle(
                         color: _connectionStatus == 'Connected'
-                            ? AppColors.accentGreen
+                            ? AppColors.accent
                             : AppColors.textSecondary,
                       ),
                     ),

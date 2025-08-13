@@ -351,7 +351,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.accentRed, // Pink from Figma
+                  color: AppColors.secondary, // Pink from Figma
                   height: 1.0,
                   shadows: [
                     Shadow(
@@ -366,7 +366,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             const SizedBox(height: 4),
             // Underline
-            Container(width: 85, height: 1, color: AppColors.accentRed),
+            Container(width: 85, height: 1, color: AppColors.secondary),
           ],
         ),
       ],

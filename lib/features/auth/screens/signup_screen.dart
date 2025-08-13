@@ -454,7 +454,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.accentRed,
+                      color: AppColors.secondary,
                       height: 1.0,
                       shadows: [
                         Shadow(
@@ -468,7 +468,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(width: 85, height: 1, color: AppColors.accentRed),
+                Container(width: 85, height: 1, color: AppColors.secondary),
               ],
             ),
           ),

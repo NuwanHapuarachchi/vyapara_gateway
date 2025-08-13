@@ -215,101 +215,118 @@ class DashboardHomeView extends ConsumerWidget {
   }
 
   Widget _buildMyApplicationsSection(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      tint: AppColors.primary,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Topic Header
+        Text(
+          'My Applications',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFA9A9A9),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Applications Card
+        GlassCard(
+          padding: const EdgeInsets.all(16),
+          tint: AppColors.primary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.business_center,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.business_center,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'My Business Applications',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'My Business Applications',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                  GestureDetector(
+                    onTap: () => AppNavigation.toApplications(context),
+                    child: const Icon(
+                      Icons.arrow_forward_ios,
                       color: AppColors.primary,
+                      size: 16,
                     ),
                   ),
                 ],
               ),
+
+              const SizedBox(height: 16),
+
+              // Application items
+              _buildApplicationItem(
+                context,
+                'Business Registration Application',
+                'In Progress',
+                Icons.pending_actions,
+                const Color(0xFFF59E0B),
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildApplicationItem(
+                context,
+                'Tax Registration Certificate',
+                'Approved',
+                Icons.check_circle,
+                const Color(0xFF10B981),
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildApplicationItem(
+                context,
+                'Trade Permit Application',
+                'Document Required',
+                Icons.warning,
+                const Color(0xFFEF4444),
+              ),
+
+              const SizedBox(height: 16),
+
               GestureDetector(
                 onTap: () => AppNavigation.toApplications(context),
-                child: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: AppColors.primary,
-                  size: 16,
+                child: Center(
+                  child: Text(
+                    'View All Applications',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.accent,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Application items
-          _buildApplicationItem(
-            context,
-            'Business Registration Application',
-            'In Progress',
-            Icons.pending_actions,
-            const Color(0xFFF59E0B),
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildApplicationItem(
-            context,
-            'Tax Registration Certificate',
-            'Approved',
-            Icons.check_circle,
-            const Color(0xFF10B981),
-          ),
-
-          const SizedBox(height: 12),
-
-          _buildApplicationItem(
-            context,
-            'Trade Permit Application',
-            'Document Required',
-            Icons.warning,
-            const Color(0xFFEF4444),
-          ),
-
-          const SizedBox(height: 16),
-
-          GestureDetector(
-            onTap: () => AppNavigation.toApplications(context),
-            child: Center(
-              child: Text(
-                'View All Applications',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.accentGreen,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -366,7 +383,7 @@ class DashboardHomeView extends ConsumerWidget {
       width: double.infinity,
       child: GlassCard(
         padding: const EdgeInsets.all(20),
-        tint: AppColors.accentGreen,
+        tint: AppColors.accent,
         onTap: () => AppNavigation.toApplications(context),
         child: Column(
           children: [
@@ -374,7 +391,7 @@ class DashboardHomeView extends ConsumerWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.accentGreen,
+                color: AppColors.accent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -427,7 +444,7 @@ class DashboardHomeView extends ConsumerWidget {
             Expanded(
               child: GlassCard(
                 padding: const EdgeInsets.all(12),
-                tint: AppColors.slBlue,
+                tint: AppColors.primary,
                 onTap: () => AppNavigation.toApplications(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -467,7 +484,7 @@ class DashboardHomeView extends ConsumerWidget {
             Expanded(
               child: GlassCard(
                 padding: const EdgeInsets.all(12),
-                tint: AppColors.slGreen,
+                tint: AppColors.primary,
                 onTap: () => AppNavigation.toCommunity(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -507,7 +524,7 @@ class DashboardHomeView extends ConsumerWidget {
             Expanded(
               child: GlassCard(
                 padding: const EdgeInsets.all(12),
-                tint: AppColors.slMaroon,
+                tint: AppColors.primary,
                 onTap: () => AppNavigation.toSettings(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

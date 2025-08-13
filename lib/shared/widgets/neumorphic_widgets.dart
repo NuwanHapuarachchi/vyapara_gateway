@@ -160,7 +160,7 @@ class NeumorphicButton extends StatelessWidget {
       ),
       child: Material(
         color: isGreen
-            ? AppColors.accentGreen
+            ? AppColors.accent
             : (isDark ? AppColors.backgroundDark : AppColors.backgroundLight),
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
@@ -525,7 +525,7 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
             ),
             border: Border(
               top: BorderSide(
-                color: AppColors.slGold.withValues(alpha: 0.3),
+                color: AppColors.accent.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -550,17 +550,17 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.slGold.withValues(alpha: 0.3),
-                              AppColors.slMaroon.withValues(alpha: 0.2),
+                              AppColors.accent.withValues(alpha: 0.3),
+                              AppColors.secondary.withValues(alpha: 0.2),
                             ],
                           ),
                           border: Border.all(
-                            color: AppColors.slGold.withValues(alpha: 0.5),
+                            color: AppColors.accent.withValues(alpha: 0.5),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.slGold.withValues(alpha: 0.3),
+                              color: AppColors.accent.withValues(alpha: 0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 4),
                             ),
@@ -579,7 +579,7 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                             child: Icon(
                               Icons.home,
                               color: widget.currentIndex == 2
-                                  ? AppColors.slGold
+                                  ? AppColors.primary
                                   : AppColors.textPrimary,
                               size: 28,
                             ),
@@ -669,19 +669,7 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
   }
 
   Color _getIndexColor(int index) {
-    switch (index) {
-      case 0:
-        return AppColors.slMaroon; // Settings
-      case 1:
-        return AppColors.slSaffron; // Notifications
-      case 2:
-        return AppColors.slGold; // Home
-      case 3:
-        return AppColors.slGreen; // Community
-      case 4:
-        return AppColors.slBlue; // Applications
-      default:
-        return AppColors.primary;
-    }
+    // Use same color for all navigation items
+    return AppColors.primary;
   }
 }

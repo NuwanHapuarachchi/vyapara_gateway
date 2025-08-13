@@ -201,7 +201,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'Total',
                 '${stats['total']}',
                 Icons.assignment_outlined,
-                const Color(0xFF3B82F6),
+                AppColors.primary,
               ),
             ),
             const SizedBox(width: 12),
@@ -210,7 +210,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'Approved',
                 '${stats['approved']}',
                 Icons.check_circle_outline,
-                const Color(0xFF10B981),
+                AppColors.primary,
               ),
             ),
             const SizedBox(width: 12),
@@ -219,7 +219,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'In Progress',
                 '${stats['inProgress']}',
                 Icons.timelapse_outlined,
-                const Color(0xFFF59E0B),
+                AppColors.primary,
               ),
             ),
             const SizedBox(width: 12),
@@ -228,7 +228,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'Rejected',
                 '${stats['rejected']}',
                 Icons.cancel_outlined,
-                const Color(0xFFEF4444),
+                AppColors.primary,
               ),
             ),
           ],
@@ -360,18 +360,8 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   }
 
   Color _getFilterTint(ApplicationFilter filter) {
-    switch (filter) {
-      case ApplicationFilter.all:
-        return AppColors.slGold;
-      case ApplicationFilter.approved:
-        return AppColors.slGreen;
-      case ApplicationFilter.inProgress:
-        return AppColors.slSaffron;
-      case ApplicationFilter.rejected:
-        return AppColors.slMaroon;
-      case ApplicationFilter.pending:
-        return AppColors.slBlue;
-    }
+    // Use same color for all filters
+    return AppColors.primary;
   }
 
   Widget _buildApplicationsList(List<ApplicationData> applications) {
@@ -903,18 +893,8 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   }
 
   Color _getCategoryTint(ApplicationCategory category) {
-    switch (category) {
-      case ApplicationCategory.companyRegistration:
-        return AppColors.slMaroon;
-      case ApplicationCategory.banking:
-        return AppColors.slGold;
-      case ApplicationCategory.taxation:
-        return AppColors.slSaffron;
-      case ApplicationCategory.licensing:
-        return AppColors.slGreen;
-      case ApplicationCategory.trade:
-        return AppColors.slBlue;
-    }
+    // Use same color for all categories
+    return AppColors.primary;
   }
 
   String _getEmptyStateTitle() {

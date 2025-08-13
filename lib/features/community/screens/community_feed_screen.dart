@@ -59,9 +59,36 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
           },
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: posts.length,
+            itemCount: posts.length + 1, // +1 for header
             itemBuilder: (context, index) {
-              return _buildPostCard(posts[index]);
+              if (index == 0) {
+                // Topic Header
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Community Discussions',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFFA9A9A9),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Ask questions, share insights, and connect with other business owners',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF888888),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return _buildPostCard(posts[index - 1]); // -1 because of header
             },
           ),
         ),

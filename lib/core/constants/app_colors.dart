@@ -14,10 +14,10 @@ class AppColors {
   static const Color secondaryDark = Color(0xFFDB2777);
   static const Color secondaryLight = Color(0xFFF472B6);
 
-  // Accent Colors (Figma Design)
-  static const Color accent = Color(0xFFF5B907); // Yellow/Gold from Figma
-  static const Color accentGreen = Color(0xFF36AD35); // Green button from Figma
-  static const Color accentRed = Color(0xFFC4305E); // Pink/Red link from Figma
+  // Accent Colors - Simplified to 3 main colors
+  static const Color accent = Color(
+    0xFF36AD35,
+  ); // Green accent (was accentGreen)
 
   // Background Colors (Figma Design)
   static const Color backgroundDark = Color(
@@ -72,10 +72,8 @@ class AppColors {
     Color(0xFFF472B6),
   ];
 
-  // Sri Lankan Flag Themed Colors
-  static const Color slMaroon = Color(0xFF8B1538); // Deep maroon from flag
-  static const Color slGold = Color(0xFFFFB000); // Golden yellow from flag
-  static const Color slSaffron = Color(0xFFFF7A00); // Saffron/orange from flag
-  static const Color slGreen = Color(0xFF228B22); // Forest green from flag
-  static const Color slBlue = Color(0xFF002868); // Navy blue accent
+  // Simplified 3-Color System
+  // Primary: Purple/Indigo (0xFF6366F1)
+  // Secondary: Pink (0xFFEC4899)
+  // Accent: Green (0xFF36AD35)
 }
