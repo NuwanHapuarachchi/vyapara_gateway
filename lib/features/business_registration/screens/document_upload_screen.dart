@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../shared/widgets/neumorphic_widgets.dart';
 
 import '../models/business_registration_model.dart';
@@ -86,17 +87,25 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       if (result != null && result.files.single.bytes != null) {
         final file = result.files.single;
 
-        // Simulate upload to Supabase storage
-        // In real implementation, you would upload to Supabase storage
+        // Upload to Supabase storage
         final fileName =
-            '${DateTime.now().millisecondsSinceEpoch}_${file.name}';
+            '${documentType}_${DateTime.now().millisecondsSinceEpoch}_${file.name}';
 
-        // For demo, we'll just store the file name
-        final documentUrl = 'documents/$fileName';
+        final documentUrl = await SupabaseService.uploadDocumentBytes(
+          data: file.bytes!,
+          fileName: fileName,
+          contentType: _getContentType(file.extension),
+        );
 
-        setState(() {
-          _uploadedDocuments[documentType] = documentUrl;
-        });
+        if (documentUrl != null) {
+          if (mounted) {
+            setState(() {
+              _uploadedDocuments[documentType] = documentUrl;
+            });
+          }
+        } else {
+          throw Exception('Failed to upload document to storage');
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -105,10 +114,15 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
                 children: [
                   const Icon(Icons.check_circle, color: Colors.white),
                   const SizedBox(width: 8),
-                  Expanded(child: Text('${file.name} uploaded successfully')),
+                  Expanded(
+                    child: Text(
+                      '${file.name} uploaded successfully to Supabase',
+                    ),
+                  ),
                 ],
               ),
               backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -129,16 +143,86 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
         );
       }
     } finally {
-      setState(() {
-        _uploadingStatus[documentType] = false;
-      });
+      if (mounted) {
+        setState(() {
+          _uploadingStatus[documentType] = false;
+        });
+      }
     }
   }
 
-  void _removeDocument(String documentType) {
-    setState(() {
-      _uploadedDocuments.remove(documentType);
-    });
+  Future<void> _removeDocument(String documentType) async {
+    try {
+      final documentUrl = _uploadedDocuments[documentType];
+      if (documentUrl != null) {
+        // Extract file path from URL for deletion
+        final uri = Uri.parse(documentUrl);
+        final pathSegments = uri.pathSegments;
+
+        // Find the path after 'object/public/business-documents/'
+        final bucketIndex = pathSegments.indexOf('business-documents');
+        if (bucketIndex != -1 && bucketIndex + 1 < pathSegments.length) {
+          final filePath = pathSegments.sublist(bucketIndex + 1).join('/');
+
+          // Delete from Supabase storage
+          final success = await SupabaseService.deleteDocument(filePath);
+
+          if (success) {
+            if (mounted) {
+              setState(() {
+                _uploadedDocuments.remove(documentType);
+              });
+            }
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.white),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Document deleted successfully from cloud storage',
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: AppColors.success,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          } else {
+            throw Exception('Failed to delete document from storage');
+          }
+        } else {
+          throw Exception('Invalid document URL format');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Delete failed: $e')),
+              ],
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+
+      // Still remove from local state even if cloud deletion failed
+      if (mounted) {
+        setState(() {
+          _uploadedDocuments.remove(documentType);
+        });
+      }
+    }
   }
 
   void _saveAndContinue() {
@@ -287,6 +371,20 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
         ],
       ),
     );
+  }
+
+  String _getContentType(String? extension) {
+    switch (extension?.toLowerCase()) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      default:
+        return 'application/octet-stream';
+    }
   }
 
   Widget _buildDocumentCard(String documentType) {

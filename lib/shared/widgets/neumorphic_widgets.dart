@@ -575,13 +575,25 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                               });
                               widget.onTap(2);
                             },
-                            customBorder: const CircleBorder(),
-                            child: Icon(
-                              Icons.home,
-                              color: widget.currentIndex == 2
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                              size: 28,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.home,
+                                color: Colors.blue,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
@@ -600,11 +612,11 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildNavItem(Icons.folder, 4), // Applications on left
+                    _buildNavItem(Icons.folder, 0), // Applications
                     _buildNavItem(Icons.notifications, 1), // Notifications
                     const SizedBox(width: 65), // Space for home button
                     _buildNavItem(Icons.people, 3), // Community
-                    _buildNavItem(Icons.settings, 0), // Settings on right
+                    _buildNavItem(Icons.settings, 4), // Settings
                   ],
                 ),
               ),

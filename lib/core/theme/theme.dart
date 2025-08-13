@@ -134,8 +134,9 @@ class AppTheme {
           return AppColors.textTertiary;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected))
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary.withOpacity(0.3);
+          }
           return AppColors.borderLight;
         }),
       ),
@@ -284,8 +285,9 @@ class AppTheme {
           return AppColors.textTertiaryLight;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected))
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary.withOpacity(0.3);
+          }
           return const Color(0xFFE5E7EB);
         }),
       ),

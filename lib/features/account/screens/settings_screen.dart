@@ -6,6 +6,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/models/user_model.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/providers/navigation_bar_provider.dart';
+import '../../../shared/widgets/animated_navigation_bars.dart';
 
 /// Settings Screen for user account management
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -241,11 +243,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 // TODO: Add notificationsEnabled to UserProfile model
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Notification settings coming soon!'),
+                    content: Text('Notifications setting coming soon!'),
                   ),
                 );
               },
             ),
+          ),
+
+          // Navigation Bar Style Selector
+          Consumer(
+            builder: (context, ref, child) {
+              final currentNavType = ref.watch(navigationBarTypeProvider);
+              final navNotifier = ref.read(navigationBarTypeProvider.notifier);
+
+              return ListTile(
+                leading: const Icon(Icons.view_carousel_outlined, color: null),
+                title: const Text('Navigation Style'),
+                subtitle: Text(navNotifier.getNavigationTypeName()),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: null,
+                  size: 16,
+                ),
+                onTap: () {
+                  _showNavigationStyleDialog(context, ref, currentNavType);
+                },
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.language_outlined, color: null),
@@ -256,6 +280,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               color: null,
               size: 16,
             ),
+            onTap: () {
+              // TODO: Implement language selection
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Language selection coming soon!'),
+                ),
+              );
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.language_outlined),
+            title: const Text('Language'),
+            subtitle: const Text('English'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () {
               // TODO: Implement language selection
               ScaffoldMessenger.of(context).showSnackBar(
@@ -352,5 +391,98 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  void _showNavigationStyleDialog(
+    BuildContext context,
+    WidgetRef ref,
+    NavigationBarType currentType,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text(
+            'Choose Navigation Style',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final type in NavigationBarType.values)
+                  RadioListTile<NavigationBarType>(
+                    title: Text(
+                      _getNavigationTypeName(type),
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                    ),
+                    subtitle: Text(
+                      _getNavigationTypeDescription(type),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
+                    value: type,
+                    groupValue: currentType,
+                    activeColor: AppColors.accent,
+                    onChanged: (NavigationBarType? value) {
+                      if (value != null) {
+                        ref
+                            .read(navigationBarTypeProvider.notifier)
+                            .setNavigationType(value);
+                        Navigator.of(context).pop();
+
+                        // Show preview message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Navigation style changed to ${_getNavigationTypeName(value)}',
+                            ),
+                            backgroundColor: AppColors.accent,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _getNavigationTypeName(NavigationBarType type) {
+    switch (type) {
+      case NavigationBarType.neumorphic:
+        return 'Classic Neumorphic';
+      case NavigationBarType.fluidGlass:
+        return 'iOS Fluid Glass';
+      case NavigationBarType.bubble:
+        return 'Bubble Animation';
+    }
+  }
+
+  String _getNavigationTypeDescription(NavigationBarType type) {
+    switch (type) {
+      case NavigationBarType.neumorphic:
+        return 'Clean design with subtle shadow effects';
+      case NavigationBarType.fluidGlass:
+        return 'Modern floating glass with blur effects';
+      case NavigationBarType.bubble:
+        return 'Playful liquid bubble animations';
+    }
   }
 }

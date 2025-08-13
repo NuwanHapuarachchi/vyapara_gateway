@@ -353,10 +353,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     final title = (notification['title'] ?? '').toLowerCase();
     final body = (notification['body'] ?? '').toLowerCase();
 
-    if (title.contains('application') || body.contains('application'))
+    if (title.contains('application') || body.contains('application')) {
       return 'Application';
-    if (title.contains('reminder') || body.contains('reminder'))
+    }
+    if (title.contains('reminder') || body.contains('reminder')) {
       return 'Reminder';
+    }
     if (title.contains('system') || body.contains('update')) return 'System';
     return 'General';
   }

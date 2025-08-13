@@ -495,13 +495,15 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
   String _getFileCategory(String fileName) {
     final name = fileName.toLowerCase();
-    if (name.contains('registration') || name.contains('license'))
+    if (name.contains('registration') || name.contains('license')) {
       return 'Registration';
+    }
     if (name.contains('tax') || name.contains('vat')) return 'Tax';
     if (name.contains('legal') || name.contains('contract')) return 'Legal';
     if (name.contains('bank') || name.contains('statement')) return 'Banking';
-    if (name.contains('certificate') || name.contains('cert'))
+    if (name.contains('certificate') || name.contains('cert')) {
       return 'Certificates';
+    }
     return 'Other';
   }
 

@@ -82,9 +82,47 @@ class SupabaseService {
   }
 
   /// =============================
-  /// Documents (Storage bucket: 'documents')
+  /// Documents (Storage bucket: 'business-documents')
   /// =============================
-  static const String _documentsBucket = 'documents';
+  static const String _documentsBucket = 'business-documents';
+
+  /// Test storage bucket connectivity
+  static Future<bool> testStorageBucket() async {
+    try {
+      final userId = SupabaseConfig.userId;
+      if (userId == null) {
+        print('Storage test failed: User not authenticated');
+        return false;
+      }
+
+      print('Testing storage bucket: $_documentsBucket');
+
+      // Try to list files in the bucket
+      final results = await _client.storage
+          .from(_documentsBucket)
+          .list(path: '$userId/', searchOptions: const SearchOptions());
+
+      print('Storage bucket test successful. Found ${results.length} files.');
+      return true;
+    } catch (e) {
+      print('Storage bucket test failed: $e');
+
+      if (e.toString().contains('bucket') ||
+          e.toString().contains('not found')) {
+        print(
+          'Bucket "$_documentsBucket" does not exist. Please create it in Supabase Dashboard.',
+        );
+      }
+      if (e.toString().contains('permission') ||
+          e.toString().contains('policy')) {
+        print(
+          'Permission denied. Check RLS policies for bucket "$_documentsBucket".',
+        );
+      }
+
+      return false;
+    }
+  }
 
   /// List files for current user in storage
   static Future<List<FileObject>> listUserDocuments() async {
@@ -107,7 +145,20 @@ class SupabaseService {
     String contentType = 'application/octet-stream',
   }) async {
     try {
-      final String path = '${SupabaseConfig.userId}/$fileName';
+      final userId = SupabaseConfig.userId;
+      if (userId == null) {
+        print('Error: User not authenticated');
+        return null;
+      }
+
+      print('Uploading document: $fileName to bucket: $_documentsBucket');
+      print('User ID: $userId');
+      print('File size: ${data.length} bytes');
+      print('Content type: $contentType');
+
+      final String path = '$userId/$fileName';
+      print('Upload path: $path');
+
       await _client.storage
           .from(_documentsBucket)
           .uploadBinary(
@@ -116,13 +167,31 @@ class SupabaseService {
             fileOptions: FileOptions(contentType: contentType, upsert: true),
           );
 
-      // Return a public URL (ensure bucket is public) or use signed URL
+      print('Upload successful, getting public URL...');
+
+      // Return a signed URL for private buckets or public URL for public buckets
       final publicUrl = _client.storage
           .from(_documentsBucket)
           .getPublicUrl(path);
+
+      print('Generated URL: $publicUrl');
       return publicUrl;
     } catch (e) {
       print('Error uploading document: $e');
+      print('Stack trace: ${StackTrace.current}');
+
+      // More detailed error information
+      if (e.toString().contains('bucket')) {
+        print('Bucket error - check if bucket "$_documentsBucket" exists');
+      }
+      if (e.toString().contains('permission') ||
+          e.toString().contains('policy')) {
+        print('Permission error - check RLS policies and authentication');
+      }
+      if (e.toString().contains('size')) {
+        print('File size error - check file size limits');
+      }
+
       return null;
     }
   }
@@ -130,12 +199,31 @@ class SupabaseService {
   /// Delete a document by path
   static Future<bool> deleteDocument(String path) async {
     try {
+      print('Deleting document: $path from bucket: $_documentsBucket');
+
       final result = await _client.storage.from(_documentsBucket).remove([
         path,
       ]);
-      return result.isEmpty; // empty list means success
+
+      print('Delete result: $result');
+
+      // Empty list means success, non-empty list contains errors
+      final success = result.isEmpty;
+      print('Delete ${success ? 'successful' : 'failed'}');
+
+      return success;
     } catch (e) {
       print('Error deleting document: $e');
+
+      // More detailed error information
+      if (e.toString().contains('permission') ||
+          e.toString().contains('policy')) {
+        print('Permission error - check RLS policies for delete operation');
+      }
+      if (e.toString().contains('not found')) {
+        print('File not found - may have been already deleted');
+      }
+
       return false;
     }
   }

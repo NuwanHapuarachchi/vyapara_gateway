@@ -15,6 +15,7 @@ class SupabaseTestScreen extends ConsumerStatefulWidget {
 
 class _SupabaseTestScreenState extends ConsumerState<SupabaseTestScreen> {
   String _connectionStatus = 'Not tested';
+  String _storageStatus = 'Not tested';
   bool _isLoading = false;
   List<Map<String, dynamic>> _businessTypes = [];
   String _nicTestResult = '';
@@ -60,6 +61,40 @@ class _SupabaseTestScreenState extends ConsumerState<SupabaseTestScreen> {
                       text: 'Test Connection',
                       isLoading: _isLoading,
                       onPressed: _testConnection,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Storage Test
+              NeumorphicCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Storage Bucket Test',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Status: $_storageStatus',
+                      style: TextStyle(
+                        color: _storageStatus == 'Connected'
+                            ? AppColors.accent
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    NeumorphicButton(
+                      text: 'Test Storage',
+                      isLoading: _isLoading,
+                      onPressed: _testStorage,
                     ),
                   ],
                 ),
@@ -134,19 +169,17 @@ class _SupabaseTestScreenState extends ConsumerState<SupabaseTestScreen> {
                         ),
                       ),
                       const SizedBox(height: 5),
-                      ..._businessTypes
-                          .map(
-                            (type) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Text(
-                                '• ${type['display_name']} (${type['type']})',
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
+                      ..._businessTypes.map(
+                        (type) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            '• ${type['display_name']} (${type['type']})',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
                             ),
-                          )
-                          .toList(),
+                          ),
+                        ),
+                      ),
                     ] else
                       const Text(
                         'No business types loaded',
@@ -222,6 +255,28 @@ class _SupabaseTestScreenState extends ConsumerState<SupabaseTestScreen> {
     } catch (e) {
       setState(() {
         _connectionStatus = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _testStorage() async {
+    setState(() {
+      _isLoading = true;
+      _storageStatus = 'Testing...';
+    });
+
+    try {
+      final isConnected = await SupabaseService.testStorageBucket();
+      setState(() {
+        _storageStatus = isConnected ? 'Connected' : 'Failed';
+      });
+    } catch (e) {
+      setState(() {
+        _storageStatus = 'Error: $e';
       });
     } finally {
       setState(() {

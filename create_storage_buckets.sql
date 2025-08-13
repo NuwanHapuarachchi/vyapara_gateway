@@ -58,20 +58,18 @@ VALUES (
 -- =====================================================
 
 -- Business Documents Policies
+-- Allow users to upload documents to their own user folder
 CREATE POLICY "Users can upload business documents" ON storage.objects
 FOR INSERT WITH CHECK (
   bucket_id = 'business-documents' AND 
-  auth.uid() IN (
-    SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
-    UNION
-    SELECT partner_id FROM business_partners 
-    WHERE business_id::text = (storage.foldername(name))[1]
-  )
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
+-- Allow users to view their own documents + business partners + admins
 CREATE POLICY "Users can view business documents" ON storage.objects
 FOR SELECT USING (
   bucket_id = 'business-documents' AND (
+    auth.uid()::text = (storage.foldername(name))[1] OR
     auth.uid() IN (
       SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
       UNION
@@ -82,25 +80,31 @@ FOR SELECT USING (
   )
 );
 
+-- Allow users to update their own documents + business owners/partners
 CREATE POLICY "Users can update business documents" ON storage.objects
 FOR UPDATE USING (
-  bucket_id = 'business-documents' AND 
-  auth.uid() IN (
-    SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
-    UNION
-    SELECT partner_id FROM business_partners 
-    WHERE business_id::text = (storage.foldername(name))[1]
+  bucket_id = 'business-documents' AND (
+    auth.uid()::text = (storage.foldername(name))[1] OR
+    auth.uid() IN (
+      SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
+      UNION
+      SELECT partner_id FROM business_partners 
+      WHERE business_id::text = (storage.foldername(name))[1]
+    )
   )
 );
 
+-- Allow users to delete their own documents + business owners/partners
 CREATE POLICY "Users can delete business documents" ON storage.objects
 FOR DELETE USING (
-  bucket_id = 'business-documents' AND 
-  auth.uid() IN (
-    SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
-    UNION
-    SELECT partner_id FROM business_partners 
-    WHERE business_id::text = (storage.foldername(name))[1]
+  bucket_id = 'business-documents' AND (
+    auth.uid()::text = (storage.foldername(name))[1] OR
+    auth.uid() IN (
+      SELECT owner_id FROM businesses WHERE id::text = (storage.foldername(name))[1]
+      UNION
+      SELECT partner_id FROM business_partners 
+      WHERE business_id::text = (storage.foldername(name))[1]
+    )
   )
 );
 
