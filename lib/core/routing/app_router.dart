@@ -74,15 +74,15 @@ class AppRouter {
             name: 'ai-help',
             builder: (context, state) => const AiChatScreen(),
           ),
+          GoRoute(
+            path: '/community',
+            name: 'community',
+            builder: (context, state) => const CommunityFeedScreen(),
+          ),
         ],
       ),
 
-      // Community Routes
-      GoRoute(
-        path: '/community',
-        name: 'community',
-        builder: (context, state) => const CommunityFeedScreen(),
-      ),
+      // Mentor Routes
       GoRoute(
         path: '/mentor-chat/:mentorId',
         name: 'mentor-chat',

@@ -36,36 +36,36 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: AppBar(
-        title: Text(
-          'Community',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text(
+            'Community',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: null,
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add, color: AppColors.primary),
+              onPressed: _showAskQuestionBottomSheet,
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppColors.primary),
-            onPressed: _showAskQuestionBottomSheet,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // TODO: Implement refresh functionality
-          await Future.delayed(const Duration(seconds: 1));
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: posts.length,
-          itemBuilder: (context, index) {
-            return _buildPostCard(posts[index]);
+        body: RefreshIndicator(
+          onRefresh: () async {
+            // TODO: Implement refresh functionality
+            await Future.delayed(const Duration(seconds: 1));
           },
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              return _buildPostCard(posts[index]);
+            },
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -87,7 +87,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     post.userName[0].toUpperCase(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: null,
                     ),
                   ),
                 ),
@@ -101,15 +101,12 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: null,
                         ),
                       ),
                       Text(
                         _formatTimeAgo(post.createdAt),
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: AppColors.textTertiary,
-                        ),
+                        style: GoogleFonts.inter(fontSize: 12, color: null),
                       ),
                     ],
                   ),
@@ -124,7 +121,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               post.question,
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: AppColors.textPrimary,
+                color: null,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -133,10 +130,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               const SizedBox(height: 8),
               Text(
                 post.description,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                style: GoogleFonts.inter(fontSize: 14, color: null),
               ),
             ],
 
@@ -220,7 +214,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: null,
               ),
             ),
           ),
@@ -242,26 +236,20 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: null,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         _formatTimeAgo(reply.createdAt),
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textTertiary,
-                        ),
+                        style: GoogleFonts.inter(fontSize: 11, color: null),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     reply.content,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: GoogleFonts.inter(fontSize: 13, color: null),
                   ),
                 ],
               ),
@@ -276,7 +264,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cardDark,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -296,7 +284,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: null,
               ),
             ),
             const SizedBox(height: 20),
@@ -345,7 +333,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cardDark,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -364,7 +352,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: null,
                 ),
               ),
               const SizedBox(height: 20),

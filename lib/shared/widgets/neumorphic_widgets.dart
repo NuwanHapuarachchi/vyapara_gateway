@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 
@@ -34,7 +35,9 @@ class NeumorphicInputField extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.textSecondary
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 14),
@@ -44,7 +47,9 @@ class NeumorphicInputField extends StatelessWidget {
           width: 318,
           height: 65,
           decoration: BoxDecoration(
-            color: AppColors.backgroundDark,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.backgroundDark
+                : AppColors.backgroundLight,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               // Inner shadow - dark (bottom-right)
@@ -70,13 +75,17 @@ class NeumorphicInputField extends StatelessWidget {
             validator: validator,
             style: GoogleFonts.inter(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: GoogleFonts.inter(
                 fontSize: 16,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondary
+                    : AppColors.textTertiaryLight,
               ),
               suffixIcon: suffixIcon,
               border: InputBorder.none,
@@ -109,6 +118,8 @@ class NeumorphicButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: 318,
       height: 65,
@@ -148,7 +159,9 @@ class NeumorphicButton extends StatelessWidget {
               ],
       ),
       child: Material(
-        color: isGreen ? AppColors.accentGreen : AppColors.backgroundDark,
+        color: isGreen
+            ? AppColors.accentGreen
+            : (isDark ? AppColors.backgroundDark : AppColors.backgroundLight),
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: isLoading ? null : onPressed,
@@ -162,8 +175,12 @@ class NeumorphicButton extends StatelessWidget {
                       width: 20,
                       child: CircularProgressIndicator(
                         color: isGreen
-                            ? AppColors.backgroundDark
-                            : AppColors.textSecondary,
+                            ? (isDark
+                                  ? AppColors.backgroundDark
+                                  : AppColors.backgroundLight)
+                            : (isDark
+                                  ? AppColors.textSecondary
+                                  : AppColors.textSecondaryLight),
                         strokeWidth: 2,
                       ),
                     )
@@ -173,8 +190,12 @@ class NeumorphicButton extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: isGreen
-                            ? AppColors.backgroundDark
-                            : AppColors.textSecondary,
+                            ? (isDark
+                                  ? AppColors.backgroundDark
+                                  : AppColors.backgroundLight)
+                            : (isDark
+                                  ? AppColors.textSecondary
+                                  : AppColors.textSecondaryLight),
                       ),
                     ),
             ),
@@ -340,8 +361,93 @@ class NeumorphicInset extends StatelessWidget {
   }
 }
 
-/// Custom Bottom Navigation Bar with neumorphic effect
-class NeumorphicBottomNavBar extends StatelessWidget {
+/// Glassmorphic Card with blur effect and Sri Lankan themed colors
+class GlassCard extends StatelessWidget {
+  final Widget child;
+  final double? width;
+  final double? height;
+  final EdgeInsets? padding;
+  final BorderRadius? borderRadius;
+  final VoidCallback? onTap;
+  final Color? tint;
+
+  const GlassCard({
+    super.key,
+    required this.child,
+    this.width,
+    this.height,
+    this.padding,
+    this.borderRadius,
+    this.onTap,
+    this.tint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final BorderRadius br = borderRadius ?? BorderRadius.circular(16);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveTint = tint ?? (isDark ? Colors.white : AppColors.primary);
+
+    return ClipRRect(
+      borderRadius: br,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            borderRadius: br,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [
+                      effectiveTint.withValues(alpha: 0.1),
+                      effectiveTint.withValues(alpha: 0.05),
+                    ]
+                  : [
+                      effectiveTint.withValues(alpha: 0.4),
+                      effectiveTint.withValues(alpha: 0.2),
+                    ],
+            ),
+            border: Border.all(
+              color: effectiveTint.withValues(alpha: isDark ? 0.2 : 0.5),
+              width: isDark ? 1.5 : 2.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: effectiveTint.withValues(alpha: isDark ? 0.1 : 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: br,
+              child: Padding(
+                padding: padding ?? const EdgeInsets.all(16),
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Animated Custom Bottom Navigation Bar with neumorphic effect
+class NeumorphicBottomNavBar extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -352,100 +458,230 @@ class NeumorphicBottomNavBar extends StatelessWidget {
   });
 
   @override
+  State<NeumorphicBottomNavBar> createState() => _NeumorphicBottomNavBarState();
+}
+
+class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
+    with TickerProviderStateMixin {
+  late AnimationController _homeAnimationController;
+  late AnimationController _tapAnimationController;
+  late Animation<double> _homeScaleAnimation;
+  late Animation<double> _tapScaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _tapAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _homeScaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _homeAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    _tapScaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
+      CurvedAnimation(parent: _tapAnimationController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _homeAnimationController.dispose();
+    _tapAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 95,
-      child: Stack(
-        children: [
-          // Background with blur effect
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 66,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.45),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    offset: const Offset(0, 1),
-                    blurRadius: 2,
-                    spreadRadius: 0,
-                  ),
-                ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: 95,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDark
+                  ? [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.black.withValues(alpha: 0.9),
+                    ]
+                  : [
+                      Colors.white.withValues(alpha: 0.9),
+                      Colors.white.withValues(alpha: 0.95),
+                    ],
+            ),
+            border: Border(
+              top: BorderSide(
+                color: AppColors.slGold.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
           ),
-
-          // Center elevated home button
-          Positioned(
-            top: 0,
-            left: MediaQuery.of(context).size.width / 2 - 32.5,
-            child: Container(
-              width: 65,
-              height: 65,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0C0C0C),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    offset: const Offset(0, 4),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onTap(2), // Home is index 2
-                  customBorder: const CircleBorder(),
-                  child: const Icon(
-                    Icons.home,
-                    color: AppColors.primary,
-                    size: 32,
-                  ),
+          child: Stack(
+            children: [
+              // Center elevated home button
+              Positioned(
+                top: 8,
+                left: MediaQuery.of(context).size.width / 2 - 32.5,
+                child: AnimatedBuilder(
+                  animation: _homeScaleAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _homeScaleAnimation.value,
+                      child: Container(
+                        width: 65,
+                        height: 65,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.slGold.withValues(alpha: 0.3),
+                              AppColors.slMaroon.withValues(alpha: 0.2),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: AppColors.slGold.withValues(alpha: 0.5),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.slGold.withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              _homeAnimationController.forward().then((_) {
+                                _homeAnimationController.reverse();
+                              });
+                              widget.onTap(2);
+                            },
+                            customBorder: const CircleBorder(),
+                            child: Icon(
+                              Icons.home,
+                              color: widget.currentIndex == 2
+                                  ? AppColors.slGold
+                                  : AppColors.textPrimary,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
-          ),
 
-          // Other navigation items
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 66,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.settings, 0),
-                _buildNavItem(Icons.notifications, 1),
-                const SizedBox(width: 65), // Space for home button
-                _buildNavItem(Icons.people, 3),
-                _buildNavItem(Icons.folder, 4),
-              ],
-            ),
+              // Other navigation items
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                height: 50,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(Icons.folder, 4), // Applications on left
+                    _buildNavItem(Icons.notifications, 1), // Notifications
+                    const SizedBox(width: 65), // Space for home button
+                    _buildNavItem(Icons.people, 3), // Community
+                    _buildNavItem(Icons.settings, 0), // Settings on right
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildNavItem(IconData icon, int index) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onTap(index),
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(icon, color: AppColors.primary, size: 24),
-        ),
-      ),
+    final isSelected = widget.currentIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color iconColor = isSelected
+        ? _getIndexColor(index)
+        : (isDark ? AppColors.textSecondary : AppColors.textSecondaryLight);
+
+    return AnimatedBuilder(
+      animation: _tapScaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: isSelected ? 1.0 : _tapScaleAnimation.value,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                if (!isSelected) {
+                  _tapAnimationController.forward().then((_) {
+                    _tapAnimationController.reverse();
+                  });
+                }
+                widget.onTap(index);
+              },
+              customBorder: const CircleBorder(),
+              child: Container(
+                width: 45,
+                height: 45,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: isSelected
+                      ? LinearGradient(
+                          colors: [
+                            _getIndexColor(index).withValues(alpha: 0.2),
+                            _getIndexColor(index).withValues(alpha: 0.1),
+                          ],
+                        )
+                      : null,
+                  border: isSelected
+                      ? Border.all(
+                          color: _getIndexColor(index).withValues(alpha: 0.3),
+                          width: 1,
+                        )
+                      : null,
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  Color _getIndexColor(int index) {
+    switch (index) {
+      case 0:
+        return AppColors.slMaroon; // Settings
+      case 1:
+        return AppColors.slSaffron; // Notifications
+      case 2:
+        return AppColors.slGold; // Home
+      case 3:
+        return AppColors.slGreen; // Community
+      case 4:
+        return AppColors.slBlue; // Applications
+      default:
+        return AppColors.primary;
+    }
   }
 }

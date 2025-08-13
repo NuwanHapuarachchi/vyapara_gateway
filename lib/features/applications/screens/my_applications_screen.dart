@@ -117,7 +117,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -151,7 +151,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       expandedHeight: 120,
       floating: false,
       pinned: true,
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
@@ -184,24 +184,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
           ],
         ),
       ),
-      actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: NeumorphicCard(
-            width: 40,
-            height: 40,
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(
-              Icons.notifications_outlined,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
-            onTap: () {
-              // TODO: Show notifications
-            },
-          ),
-        ),
-      ],
+      actions: const [],
     );
   }
 
@@ -260,31 +243,40 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
     IconData icon,
     Color color,
   ) {
-    return NeumorphicCard(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
+      tint: color,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             title,
             style: GoogleFonts.inter(
-              fontSize: 10,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
             ),
           ),
@@ -336,50 +328,50 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   ) {
     final isSelected = _currentFilter == filter;
 
+    final Color tint = _getFilterTint(filter);
+    final Color contentColor = isSelected
+        ? Colors.white
+        : AppColors.textSecondary;
+
     return Container(
       margin: const EdgeInsets.only(right: 12),
-      child: GestureDetector(
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        borderRadius: BorderRadius.circular(12),
+        tint: isSelected ? tint : AppColors.textSecondary,
         onTap: () => _setFilter(filter),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.cardDark,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                offset: const Offset(2, 2),
-                blurRadius: 4,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: contentColor),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: contentColor,
               ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.05),
-                offset: const Offset(-2, -2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Color _getFilterTint(ApplicationFilter filter) {
+    switch (filter) {
+      case ApplicationFilter.all:
+        return AppColors.slGold;
+      case ApplicationFilter.approved:
+        return AppColors.slGreen;
+      case ApplicationFilter.inProgress:
+        return AppColors.slSaffron;
+      case ApplicationFilter.rejected:
+        return AppColors.slMaroon;
+      case ApplicationFilter.pending:
+        return AppColors.slBlue;
+    }
   }
 
   Widget _buildApplicationsList(List<ApplicationData> applications) {
@@ -403,8 +395,12 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
     final categoryIcon = _getCategoryIcon(application.category);
     final priorityColor = _getPriorityColor(application.priority);
 
-    return NeumorphicCard(
+    // Use Sri Lankan theme tint based on category
+    final Color tint = _getCategoryTint(application.category);
+
+    return GlassCard(
       padding: const EdgeInsets.all(20),
+      tint: tint,
       onTap: () {
         // TODO: Navigate to application detail
       },
@@ -415,12 +411,21 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  gradient: LinearGradient(
+                    colors: [
+                      statusColor.withValues(alpha: 0.15),
+                      statusColor.withValues(alpha: 0.08),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
                 ),
-                child: Icon(categoryIcon, color: statusColor, size: 20),
+                child: Icon(categoryIcon, color: statusColor, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -679,7 +684,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   void _showNewApplicationBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -894,6 +899,21 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
         return const Color(0xFFF59E0B);
       case ApplicationPriority.low:
         return const Color(0xFF6B7280);
+    }
+  }
+
+  Color _getCategoryTint(ApplicationCategory category) {
+    switch (category) {
+      case ApplicationCategory.companyRegistration:
+        return AppColors.slMaroon;
+      case ApplicationCategory.banking:
+        return AppColors.slGold;
+      case ApplicationCategory.taxation:
+        return AppColors.slSaffron;
+      case ApplicationCategory.licensing:
+        return AppColors.slGreen;
+      case ApplicationCategory.trade:
+        return AppColors.slBlue;
     }
   }
 

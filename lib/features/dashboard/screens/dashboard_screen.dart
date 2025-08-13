@@ -30,7 +30,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: widget.child,
         bottomNavigationBar: NeumorphicBottomNavBar(
           currentIndex: _getCurrentIndex(context),
@@ -79,9 +79,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         SnackBar(
           content: const Text(
             'Press back again to exit',
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: AppColors.backgroundDark,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           margin: const EdgeInsets.all(16),
@@ -111,7 +111,7 @@ class DashboardHomeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -192,7 +192,7 @@ class DashboardHomeView extends ConsumerWidget {
             width: 57,
             height: 57,
             decoration: BoxDecoration(
-              color: AppColors.backgroundDark,
+              color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -215,10 +215,9 @@ class DashboardHomeView extends ConsumerWidget {
   }
 
   Widget _buildMyApplicationsSection(BuildContext context) {
-    return NeumorphicCard(
-      width: double.infinity,
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(16),
+      tint: AppColors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -266,6 +265,7 @@ class DashboardHomeView extends ConsumerWidget {
 
           // Application items
           _buildApplicationItem(
+            context,
             'Business Registration Application',
             'In Progress',
             Icons.pending_actions,
@@ -275,6 +275,7 @@ class DashboardHomeView extends ConsumerWidget {
           const SizedBox(height: 12),
 
           _buildApplicationItem(
+            context,
             'Tax Registration Certificate',
             'Approved',
             Icons.check_circle,
@@ -284,6 +285,7 @@ class DashboardHomeView extends ConsumerWidget {
           const SizedBox(height: 12),
 
           _buildApplicationItem(
+            context,
             'Trade Permit Application',
             'Document Required',
             Icons.warning,
@@ -312,6 +314,7 @@ class DashboardHomeView extends ConsumerWidget {
   }
 
   Widget _buildApplicationItem(
+    BuildContext context,
     String title,
     String status,
     IconData statusIcon,
@@ -320,7 +323,7 @@ class DashboardHomeView extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF323030), width: 1),
       ),
@@ -361,9 +364,9 @@ class DashboardHomeView extends ConsumerWidget {
   Widget _buildNewApplicationButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: NeumorphicCard(
+      child: GlassCard(
         padding: const EdgeInsets.all(20),
-        borderRadius: BorderRadius.circular(16),
+        tint: AppColors.accentGreen,
         onTap: () => AppNavigation.toApplications(context),
         child: Column(
           children: [
@@ -422,9 +425,9 @@ class DashboardHomeView extends ConsumerWidget {
           children: [
             // Application Tracking
             Expanded(
-              child: NeumorphicCard(
-                borderRadius: BorderRadius.circular(16),
+              child: GlassCard(
                 padding: const EdgeInsets.all(12),
+                tint: AppColors.slBlue,
                 onTap: () => AppNavigation.toApplications(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -462,9 +465,9 @@ class DashboardHomeView extends ConsumerWidget {
 
             // Business Community
             Expanded(
-              child: NeumorphicCard(
-                borderRadius: BorderRadius.circular(16),
+              child: GlassCard(
                 padding: const EdgeInsets.all(12),
+                tint: AppColors.slGreen,
                 onTap: () => AppNavigation.toCommunity(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -502,9 +505,9 @@ class DashboardHomeView extends ConsumerWidget {
 
             // Settings
             Expanded(
-              child: NeumorphicCard(
-                borderRadius: BorderRadius.circular(16),
+              child: GlassCard(
                 padding: const EdgeInsets.all(12),
+                tint: AppColors.slMaroon,
                 onTap: () => AppNavigation.toSettings(context),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -546,9 +549,9 @@ class DashboardHomeView extends ConsumerWidget {
   Widget _buildAiHelpButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: NeumorphicCard(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        borderRadius: BorderRadius.circular(16),
+        tint: AppColors.accent,
         onTap: () => AppNavigation.toAiHelp(context),
         child: Row(
           children: [

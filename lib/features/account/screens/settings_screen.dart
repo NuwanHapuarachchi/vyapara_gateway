@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/user_model.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/theme/theme_controller.dart';
 
 /// Settings Screen for user account management
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -28,41 +29,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text(
+            'Settings',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: null,
+            ),
           ),
         ),
+        body: user == null
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Profile Section
+                  _buildProfileSection(user),
+
+                  const SizedBox(height: 24),
+
+                  // Account Settings
+                  _buildAccountSettings(user),
+
+                  const SizedBox(height: 24),
+
+                  // App Settings
+                  _buildAppSettings(user),
+
+                  const SizedBox(height: 32),
+
+                  // Logout Button
+                  _buildLogoutButton(),
+                ],
+              ),
       ),
-      body: user == null
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Profile Section
-                _buildProfileSection(user),
-
-                const SizedBox(height: 24),
-
-                // Account Settings
-                _buildAccountSettings(user),
-
-                const SizedBox(height: 24),
-
-                // App Settings
-                _buildAppSettings(user),
-
-                const SizedBox(height: 32),
-
-                // Logout Button
-                _buildLogoutButton(),
-              ],
-            ),
-    ),
     );
   }
 
@@ -80,7 +81,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: null,
                 ),
               ),
             ),
@@ -90,16 +91,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: null,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               user.email,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: null),
             ),
             const SizedBox(height: 16),
             TextButton(
@@ -131,15 +129,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: null,
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(
-              Icons.email_outlined,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.email_outlined, color: null),
             title: const Text('E-mail verification'),
             subtitle: Text(user.email),
             trailing: user.isEmailVerified
@@ -157,10 +152,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
           ),
           ListTile(
-            leading: const Icon(
-              Icons.credit_card_outlined,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.credit_card_outlined, color: null),
             title: const Text('NIC Proof Upload'),
             subtitle: Text(user.nic ?? 'Not provided'),
             trailing: user.isNicVerified
@@ -190,16 +182,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(
-              Icons.phone_outlined,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.phone_outlined, color: null),
             title: const Text('Phone Number'),
             subtitle: Text(user.phone ?? 'Not provided'),
-            trailing: const Icon(
-              Icons.edit_outlined,
-              color: AppColors.textSecondary,
-            ),
+            trailing: const Icon(Icons.edit_outlined, color: null),
             onTap: () {
               // TODO: Implement phone number change
               ScaffoldMessenger.of(context).showSnackBar(
@@ -226,15 +212,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: null,
               ),
             ),
           ),
+          // Theme toggle
+          Builder(
+            builder: (context) {
+              return SwitchListTile(
+                secondary: const Icon(Icons.dark_mode_outlined, color: null),
+                value: AppThemeController.themeMode.value == ThemeMode.dark,
+                onChanged: (isDark) {
+                  AppThemeController.toggle(isDark);
+                },
+                title: const Text('Dark Mode'),
+                subtitle: const Text('Toggle between dark and light theme'),
+              );
+            },
+          ),
           ListTile(
-            leading: const Icon(
-              Icons.notifications_outlined,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.notifications_outlined, color: null),
             title: const Text('Mobile Notifications'),
             subtitle: const Text('Receive updates on your applications'),
             trailing: Switch(
@@ -251,15 +248,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(
-              Icons.language_outlined,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.language_outlined, color: null),
             title: const Text('Language'),
             subtitle: const Text('English'),
             trailing: const Icon(
               Icons.arrow_forward_ios,
-              color: AppColors.textSecondary,
+              color: null,
               size: 16,
             ),
             onTap: () {
@@ -272,14 +266,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(
-              Icons.help_outline,
-              color: AppColors.textSecondary,
-            ),
+            leading: const Icon(Icons.help_outline, color: null),
             title: const Text('Help & Support'),
             trailing: const Icon(
               Icons.arrow_forward_ios,
-              color: AppColors.textSecondary,
+              color: null,
               size: 16,
             ),
             onTap: () {
@@ -306,17 +297,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              backgroundColor: AppColors.cardDark,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               title: Text(
                 'Logout',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: null,
                 ),
               ),
               content: Text(
                 'Are you sure you want to logout?',
-                style: GoogleFonts.inter(color: AppColors.textSecondary),
+                style: GoogleFonts.inter(color: null),
               ),
               actions: [
                 TextButton(

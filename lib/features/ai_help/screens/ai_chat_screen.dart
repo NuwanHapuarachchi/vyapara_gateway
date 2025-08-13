@@ -98,7 +98,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Row(
           children: [

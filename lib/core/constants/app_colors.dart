@@ -26,13 +26,29 @@ class AppColors {
   static const Color surfaceDark = Color(0xFF161616); // Same as background
   static const Color cardDark = Color(0xFF161616); // Dark card background
 
-  // Text Colors (Figma Design)
+  // Dark Theme Text Colors
   static const Color textPrimary = Color(0xFFFFFFFF); // Pure white text
   static const Color textSecondary = Color(0xFFAAAAAA); // Gray from Figma
   static const Color textTertiary = Color(0xFF666666); // Darker gray
   static const Color textOnDark = Color(
     0xFF111827,
   ); // Dark text on light backgrounds
+
+  // Light Theme Text Colors
+  static const Color textPrimaryLight = Color(
+    0xFF111827,
+  ); // Dark text for light theme
+  static const Color textSecondaryLight = Color(
+    0xFF6B7280,
+  ); // Gray for light theme
+  static const Color textTertiaryLight = Color(
+    0xFF9CA3AF,
+  ); // Light gray for light theme
+
+  // Light Theme Background Colors
+  static const Color backgroundLight = Color(0xFFFAFAFA); // Light background
+  static const Color surfaceLight = Color(0xFFFFFFFF); // Light surface
+  static const Color cardLight = Color(0xFFFFFFFF); // Light card background
 
   // Status Colors
   static const Color success = Color(0xFF10B981);
@@ -55,4 +71,11 @@ class AppColors {
     Color(0xFFEC4899),
     Color(0xFFF472B6),
   ];
+
+  // Sri Lankan Flag Themed Colors
+  static const Color slMaroon = Color(0xFF8B1538); // Deep maroon from flag
+  static const Color slGold = Color(0xFFFFB000); // Golden yellow from flag
+  static const Color slSaffron = Color(0xFFFF7A00); // Saffron/orange from flag
+  static const Color slGreen = Color(0xFF228B22); // Forest green from flag
+  static const Color slBlue = Color(0xFF002868); // Navy blue accent
 }
