@@ -161,7 +161,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF2B804).withOpacity(0.2),
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
@@ -252,10 +252,13 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [color.withOpacity(0.15), color.withOpacity(0.08)],
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.08),
+                ],
               ),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: color.withOpacity(0.3), width: 1),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -402,13 +405,13 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      statusColor.withOpacity(0.15),
-                      statusColor.withOpacity(0.08),
+                      statusColor.withValues(alpha: 0.15),
+                      statusColor.withValues(alpha: 0.08),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: statusColor.withOpacity(0.3),
+                    color: statusColor.withValues(alpha: 0.3),
                     width: 1.5,
                   ),
                 ),
@@ -437,10 +440,10 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: priorityColor.withOpacity(0.1),
+                            color: priorityColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: priorityColor.withOpacity(0.3),
+                              color: priorityColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -481,7 +484,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -515,7 +518,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                   width: 60,
                   child: LinearProgressIndicator(
                     value: application.progress / 100,
-                    backgroundColor: statusColor.withOpacity(0.2),
+                    backgroundColor: statusColor.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation(statusColor),
                   ),
                 ),
@@ -571,10 +574,10 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFFEF4444).withOpacity(0.2),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -612,13 +615,13 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(60),
               ),
               child: Icon(
                 Icons.assignment_outlined,
                 size: 60,
-                color: AppColors.primary.withOpacity(0.7),
+                color: AppColors.primary.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 24),
@@ -752,7 +755,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: color, size: 20),
@@ -829,7 +832,6 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             .where((app) => app.status == ApplicationStatus.pending)
             .toList();
       case ApplicationFilter.all:
-      default:
         return _applications;
     }
   }
@@ -908,7 +910,6 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       case ApplicationFilter.pending:
         return 'No Pending Applications';
       case ApplicationFilter.all:
-      default:
         return 'No Applications Yet';
     }
   }
@@ -924,7 +925,6 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       case ApplicationFilter.pending:
         return 'No applications are waiting for review.';
       case ApplicationFilter.all:
-      default:
         return 'Start your business registration journey by creating your first application.';
     }
   }

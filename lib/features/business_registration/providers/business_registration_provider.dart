@@ -49,6 +49,21 @@ class BusinessRegistrationNotifier extends Notifier<BusinessRegistration?> {
     }
   }
 
+  void updateOwnersPartners({
+    required List<BusinessOwner> owners,
+    List<BusinessPartner>? partners,
+  }) {
+    if (state != null) {
+      state = state!.copyWith(owners: owners, partners: partners);
+    }
+  }
+
+  void updateUploadedDocuments(Map<String, String> uploadedDocuments) {
+    if (state != null) {
+      state = state!.copyWith(uploadedDocuments: uploadedDocuments);
+    }
+  }
+
   void clearRegistration() {
     state = null;
   }

@@ -5,7 +5,7 @@ import 'package:file_picker/file_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/neumorphic_widgets.dart';
-import '../../../core/services/supabase_service.dart';
+
 import '../models/business_registration_model.dart';
 import '../providers/business_registration_provider.dart';
 
@@ -164,12 +164,9 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
 
     // Update registration with uploaded documents
     if (registration != null) {
-      final updatedRegistration = registration.copyWith(
-        uploadedDocuments: _uploadedDocuments,
-      );
-
-      ref.read(businessRegistrationProvider.notifier).state =
-          updatedRegistration;
+      ref
+          .read(businessRegistrationProvider.notifier)
+          .updateUploadedDocuments(_uploadedDocuments);
     }
 
     widget.onNext();
@@ -220,7 +217,7 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
                   // Document list
                   ...requiredDocuments.map((documentType) {
                     return _buildDocumentCard(documentType);
-                  }).toList(),
+                  }),
 
                   // Progress indicator
                   _buildProgressIndicator(requiredDocuments),

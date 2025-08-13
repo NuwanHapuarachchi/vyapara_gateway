@@ -174,13 +174,12 @@ class _OwnersPartnersFormScreenState
     // Update the registration state
     final registration = ref.read(businessRegistrationProvider);
     if (registration != null) {
-      final updatedRegistration = registration.copyWith(
-        owners: _owners,
-        partners: _partners.isNotEmpty ? _partners : null,
-      );
-
-      ref.read(businessRegistrationProvider.notifier).state =
-          updatedRegistration;
+      ref
+          .read(businessRegistrationProvider.notifier)
+          .updateOwnersPartners(
+            owners: _owners,
+            partners: _partners.isNotEmpty ? _partners : null,
+          );
     }
 
     widget.onNext();
@@ -313,7 +312,7 @@ class _OwnersPartnersFormScreenState
             isPrimary: owner.isPrimaryOwner,
             onRemove: () => setState(() => _owners.removeAt(index)),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -342,7 +341,7 @@ class _OwnersPartnersFormScreenState
             percentage: partner.partnershipPercentage,
             onRemove: () => setState(() => _partners.removeAt(index)),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -605,7 +604,10 @@ class _OwnersPartnersFormScreenState
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
