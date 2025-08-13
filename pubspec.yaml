@@ -54,6 +54,7 @@ dependencies:
   
   # Supabase
   supabase_flutter: ^2.9.0
+  file_picker: ^8.0.0
   
   # Local Storage
   shared_preferences: ^2.3.2

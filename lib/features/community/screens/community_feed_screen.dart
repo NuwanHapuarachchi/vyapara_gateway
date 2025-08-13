@@ -177,9 +177,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
                         side: BorderSide.none,
                       ),
                     )

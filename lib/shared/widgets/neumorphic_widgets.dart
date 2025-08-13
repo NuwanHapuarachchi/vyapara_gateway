@@ -54,14 +54,14 @@ class NeumorphicInputField extends StatelessWidget {
             boxShadow: [
               // Inner shadow - dark (bottom-right)
               BoxShadow(
-                color: const Color(0xFF252525).withValues(alpha: 0.34),
+                color: const Color(0xFF252525).withOpacity(0.34),
                 offset: const Offset(4, 4),
                 blurRadius: 8,
                 spreadRadius: 0,
               ),
               // Inner shadow - light (top-left)
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.25),
+                color: Colors.white.withOpacity(0.25),
                 offset: const Offset(-4, -4),
                 blurRadius: 8,
                 spreadRadius: 0,
@@ -129,14 +129,14 @@ class NeumorphicButton extends StatelessWidget {
             ? [
                 // Drop shadow - dark
                 BoxShadow(
-                  color: const Color(0xFF252525).withValues(alpha: 0.34),
+                  color: const Color(0xFF252525).withOpacity(0.34),
                   offset: const Offset(10, 10),
                   blurRadius: 20,
                   spreadRadius: 0,
                 ),
                 // Drop shadow - light
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withOpacity(0.25),
                   offset: const Offset(-10, -10),
                   blurRadius: 20,
                   spreadRadius: 0,
@@ -145,13 +145,13 @@ class NeumorphicButton extends StatelessWidget {
             : [
                 // Default button shadows
                 BoxShadow(
-                  color: const Color(0xFF252525).withValues(alpha: 0.34),
+                  color: const Color(0xFF252525).withOpacity(0.34),
                   offset: const Offset(4, 4),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withOpacity(0.25),
                   offset: const Offset(-4, -4),
                   blurRadius: 8,
                   spreadRadius: 0,
@@ -268,13 +268,13 @@ class NeumorphicCard extends StatelessWidget {
             ? [
                 // Inset shadow for pressed state
                 BoxShadow(
-                  color: const Color(0xFF252525).withValues(alpha: 0.34),
+                  color: const Color(0xFF252525).withOpacity(0.34),
                   offset: const Offset(4, 4),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withOpacity(0.25),
                   offset: const Offset(-4, -4),
                   blurRadius: 8,
                   spreadRadius: 0,
@@ -283,13 +283,13 @@ class NeumorphicCard extends StatelessWidget {
             : [
                 // Drop shadow for normal state
                 BoxShadow(
-                  color: const Color(0xFF252525).withValues(alpha: 0.34),
+                  color: const Color(0xFF252525).withOpacity(0.34),
                   offset: const Offset(4, 4),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withOpacity(0.25),
                   offset: const Offset(-4, -4),
                   blurRadius: 8,
                   spreadRadius: 0,
@@ -339,14 +339,14 @@ class NeumorphicInset extends StatelessWidget {
         boxShadow: [
           // Inner shadow - dark (bottom-right)
           BoxShadow(
-            color: const Color(0xFF252525).withValues(alpha: 0.34),
+            color: const Color(0xFF252525).withOpacity(0.34),
             offset: const Offset(4, 4),
             blurRadius: 8,
             spreadRadius: 0,
           ),
           // Inner shadow - light (top-left)
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.25),
+            color: Colors.white.withOpacity(0.25),
             offset: const Offset(-4, -4),
             blurRadius: 8,
             spreadRadius: 0,
@@ -402,28 +402,28 @@ class GlassCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      effectiveTint.withValues(alpha: 0.1),
-                      effectiveTint.withValues(alpha: 0.05),
+                      effectiveTint.withOpacity(0.1),
+                      effectiveTint.withOpacity(0.05),
                     ]
                   : [
-                      effectiveTint.withValues(alpha: 0.4),
-                      effectiveTint.withValues(alpha: 0.2),
+                      effectiveTint.withOpacity(0.4),
+                      effectiveTint.withOpacity(0.2),
                     ],
             ),
             border: Border.all(
-              color: effectiveTint.withValues(alpha: isDark ? 0.2 : 0.5),
+              color: effectiveTint.withOpacity(isDark ? 0.2 : 0.5),
               width: isDark ? 1.5 : 2.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withValues(alpha: 0.3)
-                    : Colors.black.withValues(alpha: 0.1),
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
               BoxShadow(
-                color: effectiveTint.withValues(alpha: isDark ? 0.1 : 0.05),
+                color: effectiveTint.withOpacity(isDark ? 0.1 : 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -515,17 +515,17 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
               end: Alignment.bottomCenter,
               colors: isDark
                   ? [
-                      Colors.black.withValues(alpha: 0.8),
-                      Colors.black.withValues(alpha: 0.9),
+                      Colors.black.withOpacity(0.8),
+                      Colors.black.withOpacity(0.9),
                     ]
                   : [
-                      Colors.white.withValues(alpha: 0.9),
-                      Colors.white.withValues(alpha: 0.95),
+                      Colors.white.withOpacity(0.9),
+                      Colors.white.withOpacity(0.95),
                     ],
             ),
             border: Border(
               top: BorderSide(
-                color: AppColors.accent.withValues(alpha: 0.3),
+                color: AppColors.accent.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -550,17 +550,17 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              AppColors.accent.withValues(alpha: 0.3),
-                              AppColors.secondary.withValues(alpha: 0.2),
+                              AppColors.accent.withOpacity(0.3),
+                              AppColors.secondary.withOpacity(0.2),
                             ],
                           ),
                           border: Border.all(
-                            color: AppColors.accent.withValues(alpha: 0.5),
+                            color: AppColors.accent.withOpacity(0.5),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.accent.withValues(alpha: 0.3),
+                              color: AppColors.accent.withOpacity(0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 4),
                             ),
@@ -647,14 +647,14 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                   gradient: isSelected
                       ? LinearGradient(
                           colors: [
-                            _getIndexColor(index).withValues(alpha: 0.2),
-                            _getIndexColor(index).withValues(alpha: 0.1),
+                            _getIndexColor(index).withOpacity(0.2),
+                            _getIndexColor(index).withOpacity(0.1),
                           ],
                         )
                       : null,
                   border: isSelected
                       ? Border.all(
-                          color: _getIndexColor(index).withValues(alpha: 0.3),
+                          color: _getIndexColor(index).withOpacity(0.3),
                           width: 1,
                         )
                       : null,

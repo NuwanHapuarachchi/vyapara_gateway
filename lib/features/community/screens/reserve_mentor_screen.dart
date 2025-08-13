@@ -132,9 +132,7 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
                                 _selectedExpertise = expertise;
                               });
                             },
-                            selectedColor: AppColors.primary.withValues(
-                              alpha: 0.2,
-                            ),
+                            selectedColor: AppColors.primary.withOpacity(0.2),
                             checkmarkColor: AppColors.primary,
                           ),
                         ),
@@ -197,8 +195,8 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: mentor.isAvailable
-                                  ? AppColors.success.withValues(alpha: 0.2)
-                                  : AppColors.error.withValues(alpha: 0.2),
+                                  ? AppColors.success.withOpacity(0.2)
+                                  : AppColors.error.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -291,9 +289,7 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        backgroundColor: AppColors.primary.withValues(
-                          alpha: 0.1,
-                        ),
+                        backgroundColor: AppColors.primary.withOpacity(0.1),
                         side: BorderSide.none,
                       ),
                     )
@@ -438,8 +434,8 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
                             .map(
                               (specialty) => Chip(
                                 label: Text(specialty),
-                                backgroundColor: AppColors.primary.withValues(
-                                  alpha: 0.1,
+                                backgroundColor: AppColors.primary.withOpacity(
+                                  0.1,
                                 ),
                               ),
                             )

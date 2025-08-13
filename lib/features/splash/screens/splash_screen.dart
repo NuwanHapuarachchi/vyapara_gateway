@@ -113,14 +113,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           boxShadow: [
                             // Outer shadow - dark
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.5),
+                              color: Colors.black.withOpacity(0.5),
                               offset: const Offset(8, 8),
                               blurRadius: 16,
                               spreadRadius: 0,
                             ),
                             // Outer shadow - light
                             BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Colors.white.withOpacity(0.1),
                               offset: const Offset(-8, -8),
                               blurRadius: 16,
                               spreadRadius: 0,

@@ -254,7 +254,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
           if (message.isFromMentor) ...[
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+              backgroundColor: AppColors.primary.withOpacity(0.2),
               child: const Icon(
                 Icons.person,
                 color: AppColors.primary,
@@ -289,7 +289,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
                       fontSize: 11,
                       color: message.isFromMentor
                           ? AppColors.textTertiary
-                          : AppColors.textPrimary.withValues(alpha: 0.7),
+                          : AppColors.textPrimary.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -300,7 +300,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
+              backgroundColor: AppColors.secondary.withOpacity(0.2),
               child: const Icon(
                 Icons.person,
                 color: AppColors.secondary,

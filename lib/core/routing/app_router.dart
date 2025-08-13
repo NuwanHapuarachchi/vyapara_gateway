@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'page_transitions.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
@@ -12,6 +13,11 @@ import '../../features/community/screens/community_feed_screen.dart';
 import '../../features/community/screens/mentor_chat_screen.dart';
 import '../../features/community/screens/reserve_mentor_screen.dart';
 import '../../features/test/supabase_test_screen.dart';
+import '../../features/calendar/screens/calendar_screen.dart';
+import '../../features/documents/screens/document_vault_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/payments/screens/payment_screen.dart';
+import '../../features/business_registration/screens/business_registration_wizard.dart';
 
 /// Application routing configuration using GoRouter
 class AppRouter {
@@ -47,12 +53,21 @@ class AppRouter {
           GoRoute(
             path: '/dashboard',
             name: 'dashboard',
-            builder: (context, state) => const DashboardHomeView(),
+            pageBuilder: (context, state) =>
+                PageTransitions.fadeScaleTransition(
+                  context,
+                  state,
+                  const DashboardHomeView(),
+                ),
           ),
           GoRoute(
             path: '/applications',
             name: 'applications',
-            builder: (context, state) => const MyApplicationsScreen(),
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const MyApplicationsScreen(),
+            ),
             routes: [
               GoRoute(
                 path: '/detail/:id',
@@ -67,17 +82,76 @@ class AppRouter {
           GoRoute(
             path: '/settings',
             name: 'settings',
-            builder: (context, state) => const SettingsScreen(),
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const SettingsScreen(),
+            ),
           ),
           GoRoute(
             path: '/ai-help',
             name: 'ai-help',
-            builder: (context, state) => const AiChatScreen(),
+            pageBuilder: (context, state) => PageTransitions.heroTransition(
+              context,
+              state,
+              const AiChatScreen(),
+            ),
           ),
           GoRoute(
             path: '/community',
             name: 'community',
-            builder: (context, state) => const CommunityFeedScreen(),
+            pageBuilder: (context, state) =>
+                PageTransitions.sharedAxisTransition(
+                  context,
+                  state,
+                  const CommunityFeedScreen(),
+                ),
+          ),
+          GoRoute(
+            path: '/calendar',
+            name: 'calendar',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const CalendarScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/documents',
+            name: 'documents',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const DocumentVaultScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/notifications',
+            name: 'notifications',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const NotificationsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/payments',
+            name: 'payments',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const PaymentScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/business-registration',
+            name: 'business-registration',
+            pageBuilder: (context, state) =>
+                PageTransitions.fadeScaleTransition(
+                  context,
+                  state,
+                  const BusinessRegistrationWizard(),
+                ),
           ),
         ],
       ),
@@ -180,6 +254,26 @@ class AppNavigation {
   /// Navigate to community feed
   static void toCommunity(BuildContext context) {
     context.go('/community');
+  }
+
+  /// Navigate to calendar
+  static void toCalendar(BuildContext context) {
+    context.go('/calendar');
+  }
+
+  /// Navigate to documents vault
+  static void toDocuments(BuildContext context) {
+    context.go('/documents');
+  }
+
+  /// Navigate to notifications
+  static void toNotifications(BuildContext context) {
+    context.go('/notifications');
+  }
+
+  /// Navigate to payments
+  static void toPayments(BuildContext context) {
+    context.go('/payments');
   }
 
   /// Navigate to mentor chat

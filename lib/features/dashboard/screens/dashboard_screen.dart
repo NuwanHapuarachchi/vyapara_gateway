@@ -31,6 +31,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        drawer: _buildSideDrawer(context),
         body: widget.child,
         bottomNavigationBar: NeumorphicBottomNavBar(
           currentIndex: _getCurrentIndex(context),
@@ -40,7 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 AppNavigation.toSettings(context);
                 break;
               case 1:
-                // Notifications - placeholder
+                AppNavigation.toNotifications(context);
                 break;
               case 2:
                 AppNavigation.toDashboard(context);
@@ -101,6 +102,217 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (location?.startsWith('/applications') == true) return 4;
     if (location?.startsWith('/community') == true) return 3;
     return 2; // Default to dashboard/home
+  }
+
+  /// Build side drawer menu with all available pages
+  Widget _buildSideDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: AppColors.backgroundDark,
+      child: Column(
+        children: [
+          // Header
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: AppColors.primaryGradient,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.business_center,
+                    size: 24,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Vyāpāra Gateway',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Business Management',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Navigation Items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.dashboard_outlined,
+                  title: 'Dashboard',
+                  route: '/dashboard',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toDashboard(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.assignment_outlined,
+                  title: 'My Applications',
+                  route: '/applications',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toApplications(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.calendar_today_outlined,
+                  title: 'Calendar',
+                  route: '/calendar',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toCalendar(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.folder_outlined,
+                  title: 'Document Vault',
+                  route: '/documents',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toDocuments(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.payment_outlined,
+                  title: 'Payments',
+                  route: '/payments',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toPayments(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.notifications_outlined,
+                  title: 'Notifications',
+                  route: '/notifications',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toNotifications(context);
+                  },
+                ),
+                const Divider(color: AppColors.borderLight),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.groups_outlined,
+                  title: 'Community',
+                  route: '/community',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toCommunity(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.school_outlined,
+                  title: 'Find Mentor',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toReserveMentor(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.smart_toy_outlined,
+                  title: 'AI Assistant',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toAiHelp(context);
+                  },
+                ),
+                const Divider(color: AppColors.borderLight),
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.settings_outlined,
+                  title: 'Settings',
+                  route: '/settings',
+                  onTap: () {
+                    Navigator.pop(context);
+                    AppNavigation.toSettings(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    String? route,
+  }) {
+    final currentRoute = GoRouterState.of(context).fullPath;
+    final isActive = route != null && currentRoute?.startsWith(route) == true;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: isActive
+            ? LinearGradient(
+                colors: AppColors.primaryGradient,
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              )
+            : null,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isActive ? Colors.white : AppColors.primary,
+          size: 22,
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? Colors.white : AppColors.textPrimary,
+          ),
+        ),
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 }
 
@@ -167,7 +379,7 @@ class DashboardHomeView extends ConsumerWidget {
             width: 30,
             height: 30,
             child: IconButton(
-              onPressed: () {},
+              onPressed: () => Scaffold.of(context).openDrawer(),
               icon: const Icon(Icons.menu, color: AppColors.primary, size: 30),
               padding: EdgeInsets.zero,
             ),
@@ -196,12 +408,12 @@ class DashboardHomeView extends ConsumerWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: Colors.black.withOpacity(0.25),
                   offset: const Offset(4, 4),
                   blurRadius: 8,
                 ),
                 BoxShadow(
-                  color: const Color(0xFF323030).withValues(alpha: 0.25),
+                  color: const Color(0xFF323030).withOpacity(0.25),
                   offset: const Offset(-4, -4),
                   blurRadius: 8,
                 ),
@@ -438,6 +650,7 @@ class DashboardHomeView extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // First Row
         Row(
           children: [
             // Application Tracking
@@ -464,7 +677,7 @@ class DashboardHomeView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Track Applications',
+                      'Applications',
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w500,
@@ -505,6 +718,131 @@ class DashboardHomeView extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Community',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFA9A9A9),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Calendar
+            Expanded(
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                tint: AppColors.primary,
+                onTap: () => AppNavigation.toCalendar(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F9FF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.calendar_today_outlined,
+                        color: Color(0xFF0369A1),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Calendar',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFA9A9A9),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Second Row
+        Row(
+          children: [
+            // Documents
+            Expanded(
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                tint: AppColors.primary,
+                onTap: () => AppNavigation.toDocuments(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.folder_outlined,
+                        color: Color(0xFF059669),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Documents',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFA9A9A9),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Payments
+            Expanded(
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                tint: AppColors.primary,
+                onTap: () => AppNavigation.toPayments(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7ED),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.payment_outlined,
+                        color: Color(0xFFEA580C),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Payments',
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w500,

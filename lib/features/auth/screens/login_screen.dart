@@ -208,14 +208,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             boxShadow: [
               // Inner shadow - dark
               BoxShadow(
-                color: const Color(0xFF252525).withValues(alpha: 0.34),
+                color: const Color(0xFF252525).withOpacity(0.34),
                 offset: const Offset(4, 4),
                 blurRadius: 8,
                 spreadRadius: 0,
               ),
               // Inner shadow - light
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.25),
+                color: Colors.white.withOpacity(0.25),
                 offset: const Offset(-4, -4),
                 blurRadius: 8,
                 spreadRadius: 0,
@@ -355,7 +355,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 1.0,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withValues(alpha: 0.25),
+                      color: Colors.black.withOpacity(0.25),
                       offset: const Offset(0, 4),
                       blurRadius: 4,
                     ),
