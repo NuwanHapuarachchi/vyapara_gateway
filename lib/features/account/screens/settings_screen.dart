@@ -1,0 +1,365 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/models/user_model.dart';
+import '../../auth/providers/auth_provider.dart';
+
+/// Settings Screen for user account management
+class SettingsScreen extends ConsumerStatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          // Navigate back to dashboard instead of exiting
+          context.go('/dashboard');
+        }
+      },
+      child: Scaffold(
+      backgroundColor: AppColors.backgroundDark,
+      appBar: AppBar(
+        title: Text(
+          'Settings',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Profile Section
+                _buildProfileSection(user),
+
+                const SizedBox(height: 24),
+
+                // Account Settings
+                _buildAccountSettings(user),
+
+                const SizedBox(height: 24),
+
+                // App Settings
+                _buildAppSettings(user),
+
+                const SizedBox(height: 32),
+
+                // Logout Button
+                _buildLogoutButton(),
+              ],
+            ),
+    ),
+    );
+  }
+
+  Widget _buildProfileSection(UserProfile user) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : 'U',
+                style: GoogleFonts.poppins(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user.fullName,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              user.email,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                // TODO: Implement edit profile functionality
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Edit profile feature coming soon!'),
+                  ),
+                );
+              },
+              child: const Text('change information?'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountSettings(UserProfile user) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Account Settings',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.email_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('E-mail verification'),
+            subtitle: Text(user.email),
+            trailing: user.isEmailVerified
+                ? const Icon(Icons.check_circle, color: AppColors.success)
+                : TextButton(
+                    onPressed: () {
+                      // TODO: Implement email verification
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Email verification sent!'),
+                        ),
+                      );
+                    },
+                    child: const Text('Verify'),
+                  ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.credit_card_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('NIC Proof Upload'),
+            subtitle: Text(user.nic ?? 'Not provided'),
+            trailing: user.isNicVerified
+                ? const Icon(Icons.check_circle, color: AppColors.success)
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.warning, color: AppColors.warning),
+                      const SizedBox(width: 8),
+                      Text(
+                        'pending',
+                        style: GoogleFonts.inter(
+                          color: AppColors.warning,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+            onTap: () {
+              // TODO: Implement NIC upload functionality
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('NIC upload feature coming soon!'),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.phone_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('Phone Number'),
+            subtitle: Text(user.phone ?? 'Not provided'),
+            trailing: const Icon(
+              Icons.edit_outlined,
+              color: AppColors.textSecondary,
+            ),
+            onTap: () {
+              // TODO: Implement phone number change
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Phone number change feature coming soon!'),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppSettings(UserProfile user) {
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'App Settings',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.notifications_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('Mobile Notifications'),
+            subtitle: const Text('Receive updates on your applications'),
+            trailing: Switch(
+              value:
+                  true, // TODO: Implement notifications preference in UserProfile
+              onChanged: (value) {
+                // TODO: Add notificationsEnabled to UserProfile model
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Notification settings coming soon!'),
+                  ),
+                );
+              },
+            ),
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.language_outlined,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('Language'),
+            subtitle: const Text('English'),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              color: AppColors.textSecondary,
+              size: 16,
+            ),
+            onTap: () {
+              // TODO: Implement language selection
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Language selection coming soon!'),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.help_outline,
+              color: AppColors.textSecondary,
+            ),
+            title: const Text('Help & Support'),
+            trailing: const Icon(
+              Icons.arrow_forward_ios,
+              color: AppColors.textSecondary,
+              size: 16,
+            ),
+            onTap: () {
+              // TODO: Implement help & support
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Help & support feature coming soon!'),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          // Show confirmation dialog
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: AppColors.cardDark,
+              title: Text(
+                'Logout',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              content: Text(
+                'Are you sure you want to logout?',
+                style: GoogleFonts.inter(color: AppColors.textSecondary),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(
+                    'Logout',
+                    style: GoogleFonts.inter(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed == true && mounted) {
+            await ref.read(authProvider.notifier).logout();
+            if (mounted) {
+              context.go('/login');
+            }
+          }
+        },
+        icon: const Icon(Icons.logout, color: AppColors.error),
+        label: Text(
+          'Logout',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.error,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.error, width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+}

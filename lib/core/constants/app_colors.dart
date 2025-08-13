@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+
+/// Application color constants based on the Vyāpāra Gateway design system
+class AppColors {
+  AppColors._();
+
+  // Primary Colors (Deep Purple/Pink Theme)
+  static const Color primary = Color(0xFF6366F1); // Deep purple/indigo
+  static const Color primaryDark = Color(0xFF4338CA);
+  static const Color primaryLight = Color(0xFF8B5CF6);
+
+  // Secondary Colors
+  static const Color secondary = Color(0xFFEC4899); // Pink accent
+  static const Color secondaryDark = Color(0xFFDB2777);
+  static const Color secondaryLight = Color(0xFFF472B6);
+
+  // Accent Colors (Figma Design)
+  static const Color accent = Color(0xFFF5B907); // Yellow/Gold from Figma
+  static const Color accentGreen = Color(0xFF36AD35); // Green button from Figma
+  static const Color accentRed = Color(0xFFC4305E); // Pink/Red link from Figma
+
+  // Background Colors (Figma Design)
+  static const Color backgroundDark = Color(
+    0xFF161616,
+  ); // Exact Figma background
+  static const Color surfaceDark = Color(0xFF161616); // Same as background
+  static const Color cardDark = Color(0xFF161616); // Dark card background
+
+  // Text Colors (Figma Design)
+  static const Color textPrimary = Color(0xFFFFFFFF); // Pure white text
+  static const Color textSecondary = Color(0xFFAAAAAA); // Gray from Figma
+  static const Color textTertiary = Color(0xFF666666); // Darker gray
+  static const Color textOnDark = Color(
+    0xFF111827,
+  ); // Dark text on light backgrounds
+
+  // Status Colors
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFEF4444);
+  static const Color info = Color(0xFF3B82F6);
+
+  // Border Colors
+  static const Color borderLight = Color(0xFF374151);
+  static const Color borderMedium = Color(0xFF4B5563);
+  static const Color borderDark = Color(0xFF6B7280);
+
+  // Gradient Colors
+  static const List<Color> primaryGradient = [
+    Color(0xFF6366F1),
+    Color(0xFF8B5CF6),
+  ];
+
+  static const List<Color> secondaryGradient = [
+    Color(0xFFEC4899),
+    Color(0xFFF472B6),
+  ];
+}
