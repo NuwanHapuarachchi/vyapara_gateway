@@ -122,84 +122,109 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          'Document Vault',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+      appBar: null,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(child: _buildCategoriesFilter()),
+            _buildDocumentsSliver(),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.folder, color: AppColors.primary),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            onPressed: _uploading ? null : _pickAndUpload,
-            icon: _uploading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  )
-                : Icon(Icons.add, color: AppColors.primary),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
-      body: Column(
-        children: [
-          // Categories Filter
-          _buildCategoriesFilter(),
+    );
+  }
 
-          // Documents List
-          Expanded(
-            child: FutureBuilder<void>(
-              future: _load,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final filteredFiles = _selectedCategory == 'All'
-                    ? _files
-                    : _files
-                          .where(
-                            (f) =>
-                                _getFileCategory(f.name ?? '') ==
-                                _selectedCategory,
-                          )
-                          .toList();
-
-                if (filteredFiles.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: _refresh,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredFiles.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final file = filteredFiles[index];
-                      return _buildFileCard(file);
-                    },
-                  ),
-                );
-              },
+  SliverAppBar _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.folder_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Document Vault',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+      actions: [
+        IconButton(
+          onPressed: _uploading ? null : _pickAndUpload,
+          icon: _uploading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.add, color: AppColors.primary),
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildDocumentsSliver() {
+    return FutureBuilder<void>(
+      future: _load,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        final filteredFiles = _selectedCategory == 'All'
+            ? _files
+            : _files
+                  .where(
+                    (f) => _getFileCategory(f.name ?? '') == _selectedCategory,
+                  )
+                  .toList();
+
+        if (filteredFiles.isEmpty) {
+          return SliverToBoxAdapter(child: _buildEmptyState());
+        }
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final file = filteredFiles[index];
+            return Container(
+              margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+              child: _buildFileCard(file),
+            );
+          }, childCount: filteredFiles.length),
+        );
+      },
     );
   }
 
@@ -225,8 +250,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   _selectedCategory = category;
                 });
               },
-              backgroundColor: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.cardDark 
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
                   : AppColors.cardLight,
               selectedColor: AppColors.primary.withOpacity(0.2),
               checkmarkColor: AppColors.primary,
@@ -447,8 +472,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark 
-            ? AppColors.cardDark 
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
             : AppColors.cardLight,
         title: Text(
           'Delete Document',

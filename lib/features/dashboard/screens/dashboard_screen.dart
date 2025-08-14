@@ -74,7 +74,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       case NavigationBarType.bubble:
         return BubbleNavigationBar(currentIndex: currentIndex, onTap: onTap);
       case NavigationBarType.neumorphic:
-      default:
         return NeumorphicBottomNavBar(currentIndex: currentIndex, onTap: onTap);
     }
   }
@@ -350,104 +349,79 @@ class DashboardHomeView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(context),
-
-              // Body content with padding
-              Padding(
+        child: CustomScrollView(
+          slivers: [
+            _buildSliverAppBar(context),
+            SliverToBoxAdapter(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-
-                    // My Applications section
                     _buildMyApplicationsSection(context),
-
                     const SizedBox(height: 32),
-
-                    // Start New Application Button
                     _buildNewApplicationButton(context),
-
                     const SizedBox(height: 32),
-
-                    // Feature grid
                     _buildFeatureGrid(context),
-
                     const SizedBox(height: 32),
-
-                    // AI Help button
                     _buildAiHelpButton(context),
-
-                    const SizedBox(height: 100), // Space for bottom navigation
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          // Sidebar toggle
-          SizedBox(
-            width: 30,
-            height: 30,
-            child: IconButton(
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              icon: const Icon(Icons.menu, color: AppColors.primary, size: 30),
-              padding: EdgeInsets.zero,
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // Dashboard title
-          Expanded(
-            child: Text(
-              'Dashboard',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFFA9A9A9),
+  SliverAppBar _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.dashboard_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
               ),
             ),
-          ),
-
-          // Profile icon
-          Container(
-            width: 57,
-            height: 57,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  offset: const Offset(4, 4),
-                  blurRadius: 8,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Dashboard',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                BoxShadow(
-                  color: const Color(0xFF323030).withOpacity(0.25),
-                  offset: const Offset(-4, -4),
-                  blurRadius: 8,
-                ),
-              ],
+              ),
             ),
-            child: const Icon(Icons.person, color: Color(0xFFA9A9A9), size: 28),
-          ),
-        ],
+          ],
+        ),
       ),
+      actions: [
+        IconButton(
+          onPressed: () => Scaffold.of(context).openDrawer(),
+          icon: const Icon(Icons.menu, color: AppColors.primary, size: 24),
+          padding: EdgeInsets.zero,
+        ),
+      ],
     );
   }
 

@@ -32,45 +32,97 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: Text(
-            'Settings',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: null,
-            ),
-          ),
-        ),
+        appBar: null,
         body: user == null
             ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  // Profile Section
-                  _buildProfileSection(user),
+            : CustomScrollView(
+                slivers: [
+                  _buildSliverAppBar(),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // Profile Section
+                          _buildProfileSection(user),
 
-                  const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                  // Account Settings
-                  _buildAccountSettings(user),
+                          // Account Settings
+                          _buildAccountSettings(user),
 
-                  const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                  // App Settings
-                  _buildAppSettings(user),
+                          // App Settings
+                          _buildAppSettings(user),
 
-                  const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                  // Logout Button
-                  _buildLogoutButton(),
+                          // Logout Button
+                          _buildLogoutButton(),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
       ),
     );
   }
 
+  SliverAppBar _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.settings_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Settings',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileSection(UserProfile user) {
-    return Card(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -83,7 +135,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.w600,
-                  color: null,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -93,18 +145,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: null,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               user.email,
-              style: GoogleFonts.inter(fontSize: 14, color: null),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: isDark
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondaryLight,
+              ),
             ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                // TODO: Implement edit profile functionality
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Edit profile feature coming soon!'),
@@ -120,7 +176,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildAccountSettings(UserProfile user) {
-    return Card(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -131,12 +196,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: null,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.email_outlined, color: null),
+            leading: Icon(Icons.email_outlined, color: AppColors.primary),
             title: const Text('E-mail verification'),
             subtitle: Text(user.email),
             trailing: user.isEmailVerified
@@ -154,7 +219,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
           ),
           ListTile(
-            leading: const Icon(Icons.credit_card_outlined, color: null),
+            leading: Icon(Icons.credit_card_outlined, color: AppColors.primary),
             title: const Text('NIC Proof Upload'),
             subtitle: Text(user.nic ?? 'Not provided'),
             trailing: user.isNicVerified
@@ -184,10 +249,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.phone_outlined, color: null),
+            leading: Icon(Icons.phone_outlined, color: AppColors.primary),
             title: const Text('Phone Number'),
             subtitle: Text(user.phone ?? 'Not provided'),
-            trailing: const Icon(Icons.edit_outlined, color: null),
+            trailing: Icon(Icons.edit_outlined, color: AppColors.primary),
             onTap: () {
               // TODO: Implement phone number change
               ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +268,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildAppSettings(UserProfile user) {
-    return Card(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+          width: 1,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,7 +288,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: null,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -222,7 +296,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Builder(
             builder: (context) {
               return SwitchListTile(
-                secondary: const Icon(Icons.dark_mode_outlined, color: null),
+                secondary: Icon(
+                  Icons.dark_mode_outlined,
+                  color: AppColors.primary,
+                ),
                 value: AppThemeController.themeMode.value == ThemeMode.dark,
                 onChanged: (isDark) {
                   AppThemeController.toggle(isDark);
@@ -233,7 +310,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.notifications_outlined, color: null),
+            leading: Icon(
+              Icons.notifications_outlined,
+              color: AppColors.primary,
+            ),
             title: const Text('Mobile Notifications'),
             subtitle: const Text('Receive updates on your applications'),
             trailing: Switch(
@@ -257,12 +337,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final navNotifier = ref.read(navigationBarTypeProvider.notifier);
 
               return ListTile(
-                leading: const Icon(Icons.view_carousel_outlined, color: null),
+                leading: Icon(
+                  Icons.view_carousel_outlined,
+                  color: AppColors.primary,
+                ),
                 title: const Text('Navigation Style'),
                 subtitle: Text(navNotifier.getNavigationTypeName()),
                 trailing: const Icon(
                   Icons.arrow_forward_ios,
-                  color: null,
+                  color: AppColors.textSecondary,
                   size: 16,
                 ),
                 onTap: () {
@@ -272,12 +355,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.language_outlined, color: null),
+            leading: Icon(Icons.language_outlined, color: AppColors.primary),
             title: const Text('Language'),
             subtitle: const Text('English'),
             trailing: const Icon(
               Icons.arrow_forward_ios,
-              color: null,
+              color: AppColors.textSecondary,
               size: 16,
             ),
             onTap: () {
@@ -289,27 +372,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-
+          // Remove duplicate language tile
           ListTile(
-            leading: const Icon(Icons.language_outlined),
-            title: const Text('Language'),
-            subtitle: const Text('English'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              // TODO: Implement language selection
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Language selection coming soon!'),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline, color: null),
+            leading: Icon(Icons.help_outline, color: AppColors.primary),
             title: const Text('Help & Support'),
             trailing: const Icon(
               Icons.arrow_forward_ios,
-              color: null,
+              color: AppColors.textSecondary,
               size: 16,
             ),
             onTap: () {

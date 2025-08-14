@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../shared/widgets/neumorphic_widgets.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -15,27 +16,16 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     with TickerProviderStateMixin {
   late Future<List<Map<String, dynamic>>> _future;
-  late TabController _tabController;
   String _selectedFilter = 'All';
-
-  final List<String> _filters = [
-    'All',
-    'Unread',
-    'Applications',
-    'System',
-    'Reminders',
-  ];
 
   @override
   void initState() {
     super.initState();
     _future = SupabaseService.getNotifications();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -49,121 +39,159 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          'Notifications',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
+      appBar: null,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => _refreshNotifications(),
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(),
+              SliverToBoxAdapter(child: _buildFiltersSection()),
+              _buildNotificationsSliver(),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
           ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.notifications, color: AppColors.primary),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            onPressed: _markAllAsRead,
-            icon: Icon(Icons.done_all, color: AppColors.primary),
-            tooltip: 'Mark all as read',
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
-      body: Column(
-        children: [
-          // Filters
-          _buildFiltersSection(),
+    );
+  }
 
-          // Notifications List
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final allNotifications = snapshot.data ?? [];
-                final filteredNotifications = _filterNotifications(
-                  allNotifications,
-                );
-
-                if (filteredNotifications.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async => _refreshNotifications(),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredNotifications.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final notification = filteredNotifications[index];
-                      return _buildNotificationCard(notification);
-                    },
-                  ),
-                );
-              },
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Notifications',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+      actions: [
+        IconButton(
+          onPressed: _markAllAsRead,
+          icon: const Icon(Icons.done_all, color: AppColors.primary),
+          tooltip: 'Mark all as read',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationsSliver() {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        final allNotifications = snapshot.data ?? [];
+        final filteredNotifications = _filterNotifications(allNotifications);
+
+        if (filteredNotifications.isEmpty) {
+          return SliverToBoxAdapter(child: _buildEmptyState());
+        }
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final notification = filteredNotifications[index];
+            return Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: _buildNotificationCard(notification),
+            );
+          }, childCount: filteredNotifications.length),
+        );
+      },
     );
   }
 
   Widget _buildFiltersSection() {
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView.builder(
+      height: 50,
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _filters.length,
-        itemBuilder: (context, index) {
-          final filter = _filters[index];
-          final isSelected = filter == _selectedFilter;
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _buildFilterChip('All', Icons.apps),
+          _buildFilterChip('Unread', Icons.mark_email_unread_outlined),
+          _buildFilterChip('Applications', Icons.assignment_outlined),
+          _buildFilterChip('System', Icons.settings_outlined),
+          _buildFilterChip('Reminders', Icons.schedule_outlined),
+        ],
+      ),
+    );
+  }
 
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: FilterChip(
-              label: Text(filter),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedFilter = filter;
-                });
-              },
-              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.cardDark
-                  : AppColors.cardLight,
-              selectedColor: AppColors.primary.withOpacity(0.2),
-              checkmarkColor: AppColors.primary,
-              labelStyle: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primary
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.textSecondary
-                          : AppColors.textSecondaryLight),
-              ),
-              side: BorderSide(
-                color: isSelected
-                    ? AppColors.primary
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.borderLight
-                          : AppColors.borderLightTheme),
-                width: 1,
+  Widget _buildFilterChip(String label, IconData icon) {
+    final bool isSelected = _selectedFilter == label;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    // Match My Applications filter chip visual using GlassCard
+    final Color tint = AppColors.primary;
+    final Color contentColor = isSelected
+        ? (isDark ? Colors.white : tint)
+        : (isDark ? AppColors.textSecondary : AppColors.textSecondaryLight);
+
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        borderRadius: BorderRadius.circular(12),
+        tint: isSelected
+            ? (isDark ? tint : AppColors.textSecondary)
+            : AppColors.textSecondary,
+        onTap: () {
+          setState(() {
+            _selectedFilter = label;
+          });
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: contentColor),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: contentColor,
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

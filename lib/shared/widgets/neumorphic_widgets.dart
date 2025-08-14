@@ -622,7 +622,7 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildNavItem(Icons.folder, 0), // Applications
+                    _buildNavItem(Icons.assignment_outlined, 0), // Applications
                     _buildNavItem(Icons.notifications, 1), // Notifications
                     const SizedBox(width: 65), // Space for home button
                     _buildNavItem(Icons.people, 3), // Community

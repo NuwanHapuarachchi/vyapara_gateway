@@ -23,7 +23,7 @@ class _NavigationBarDemoScreenState
   final List<_PageInfo> _pages = [
     _PageInfo(
       title: 'Applications',
-      icon: Icons.folder,
+      icon: Icons.assignment_outlined,
       color: const Color(0xFF092F63),
       bgColor: const Color(0xFFBBD8FF),
     ),
@@ -274,7 +274,6 @@ class _NavigationBarDemoScreenState
         );
       case NavigationBarType.neumorphic:
       case null:
-      default:
         return NeumorphicBottomNavBar(
           currentIndex: _currentIndex,
           onTap: (index) {

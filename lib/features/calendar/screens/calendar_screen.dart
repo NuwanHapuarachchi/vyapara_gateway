@@ -101,26 +101,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          'Calendar',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: _loadEvents,
-            tooltip: 'Refresh Events',
-          ),
-        ],
-      ),
+      appBar: null,
       body: AnimatedBuilder(
         animation: _slideAnimation,
         builder: (context, child) {
@@ -128,11 +109,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             offset: Offset(0, 50 * (1 - _slideAnimation.value)),
             child: Opacity(
               opacity: _slideAnimation.value.clamp(0.0, 1.0),
-              child: ListView(
-                children: [
-                  _buildCalendarHeader(),
-                  _buildCalendarGrid(),
-                  _buildEventsSection(),
+              child: CustomScrollView(
+                slivers: [
+                  _buildSliverAppBar(),
+                  SliverToBoxAdapter(child: _buildCalendarHeader()),
+                  SliverToBoxAdapter(child: _buildCalendarGrid()),
+                  SliverToBoxAdapter(child: _buildEventsSection()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
                 ],
               ),
             ),
@@ -144,6 +127,54 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
+    );
+  }
+
+  SliverAppBar _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.calendar_today_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Calendar',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.refresh, color: AppColors.primary),
+          onPressed: _loadEvents,
+          tooltip: 'Refresh Events',
+        ),
+      ],
     );
   }
 

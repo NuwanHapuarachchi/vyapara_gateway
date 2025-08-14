@@ -37,64 +37,75 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: Text(
-            'Community',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.add, color: AppColors.primary),
-              onPressed: _showAskQuestionBottomSheet,
-            ),
-          ],
-        ),
+        appBar: null,
         body: RefreshIndicator(
           onRefresh: () async {
-            // TODO: Implement refresh functionality
             await Future.delayed(const Duration(seconds: 1));
           },
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: posts.length + 1, // +1 for header
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // Topic Header
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Community Discussions',
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Ask questions, share insights, and connect with other business owners',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.textSecondary
-                              : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                    ],
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(),
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildPostCard(posts[index]),
+                    childCount: posts.length,
                   ),
-                );
-              }
-              return _buildPostCard(posts[index - 1]); // -1 because of header
-            },
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  SliverAppBar _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: false,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2B804).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.groups_outlined,
+                color: Color(0xFFF2B804),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Community',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add, color: AppColors.primary),
+          onPressed: _showAskQuestionBottomSheet,
+        ),
+      ],
     );
   }
 
