@@ -18,11 +18,17 @@ class NavigationBarTypeNotifier extends Notifier<NavigationBarType> {
   static const String _prefsKey = 'navigation_bar_type';
 
   Future<void> _loadPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    final typeIndex = prefs.getInt(_prefsKey) ?? NavigationBarType.bubble.index;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final typeIndex =
+          prefs.getInt(_prefsKey) ?? NavigationBarType.bubble.index;
 
-    if (typeIndex >= 0 && typeIndex < NavigationBarType.values.length) {
-      state = NavigationBarType.values[typeIndex];
+      if (typeIndex >= 0 && typeIndex < NavigationBarType.values.length) {
+        state = NavigationBarType.values[typeIndex];
+      }
+    } catch (e) {
+      // If loading fails, keep default
+      print('Failed to load navigation preference: $e');
     }
   }
 

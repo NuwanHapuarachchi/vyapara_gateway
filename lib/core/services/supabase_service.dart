@@ -301,51 +301,188 @@ class SupabaseService {
   /// =============================
   /// Calendar / Events
   /// =============================
+
+  /// Get all events for the current user
+  static Future<List<Map<String, dynamic>>> getAllEvents() async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) return [];
+
+      final response = await _client
+          .from('events')
+          .select('*')
+          .eq('user_id', userId)
+          .order('start_at');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching all events: $e');
+      return [];
+    }
+  }
+
+  /// Get upcoming events for the current user
   static Future<List<Map<String, dynamic>>> getUpcomingEvents() async {
     try {
       final String? userId = SupabaseConfig.userId;
       if (userId == null) return [];
 
-      // Try to fetch from events table, fallback to sample data if table doesn't exist
       final response = await _client
           .from('events')
           .select('*')
           .eq('user_id', userId)
           .gte('start_at', DateTime.now().toIso8601String())
-          .order('start_at');
+          .order('start_at')
+          .limit(10);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching events: $e');
+      print('Error fetching upcoming events: $e');
       // Return sample events if table doesn't exist
       return [
         {
           'id': '1',
           'title': 'Business Registration Appointment',
           'description': 'Complete business registration process',
+          'event_type': 'appointment',
           'start_at': DateTime.now()
               .add(const Duration(days: 2))
               .toIso8601String(),
+          'color': '#10B981',
           'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
         },
         {
           'id': '2',
           'title': 'Tax Consultation',
           'description': 'Meet with tax advisor for annual planning',
+          'event_type': 'meeting',
           'start_at': DateTime.now()
               .add(const Duration(days: 5))
               .toIso8601String(),
+          'color': '#3B82F6',
           'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
         },
         {
           'id': '3',
           'title': 'License Renewal Deadline',
           'description': 'Business license renewal due',
+          'event_type': 'deadline',
           'start_at': DateTime.now()
               .add(const Duration(days: 10))
               .toIso8601String(),
+          'color': '#EF4444',
           'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
         },
       ];
+    }
+  }
+
+  /// Get events for a specific date
+  static Future<List<Map<String, dynamic>>> getEventsForDate(
+    DateTime date,
+  ) async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) return [];
+
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _client
+          .from('events')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('start_at', startOfDay.toIso8601String())
+          .lt('start_at', endOfDay.toIso8601String())
+          .order('start_at');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching events for date: $e');
+      return [];
+    }
+  }
+
+  /// Create a new event
+  static Future<Map<String, dynamic>?> createEvent(
+    Map<String, dynamic> eventData,
+  ) async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) return null;
+
+      final data = {
+        ...eventData,
+        'user_id': userId,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await _client
+          .from('events')
+          .insert(data)
+          .select()
+          .single();
+
+      print('Event created successfully: ${response['id']}');
+      return response;
+    } catch (e) {
+      print('Error creating event: $e');
+      return null;
+    }
+  }
+
+  /// Update an existing event
+  static Future<Map<String, dynamic>?> updateEvent(
+    String eventId,
+    Map<String, dynamic> eventData,
+  ) async {
+    try {
+      final data = {
+        ...eventData,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await _client
+          .from('events')
+          .update(data)
+          .eq('id', eventId)
+          .select()
+          .single();
+
+      print('Event updated successfully: $eventId');
+      return response;
+    } catch (e) {
+      print('Error updating event: $e');
+      return null;
+    }
+  }
+
+  /// Delete an event
+  static Future<bool> deleteEvent(String eventId) async {
+    try {
+      await _client.from('events').delete().eq('id', eventId);
+
+      print('Event deleted successfully: $eventId');
+      return true;
+    } catch (e) {
+      print('Error deleting event: $e');
+      return false;
+    }
+  }
+
+  /// Get event by ID
+  static Future<Map<String, dynamic>?> getEventById(String eventId) async {
+    try {
+      final response = await _client
+          .from('events')
+          .select('*')
+          .eq('id', eventId)
+          .single();
+      return response;
+    } catch (e) {
+      print('Error fetching event by ID: $e');
+      return null;
     }
   }
 

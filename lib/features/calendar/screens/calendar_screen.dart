@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/supabase_service.dart';
+import '../../../shared/widgets/neumorphic_widgets.dart';
+import '../models/event_model.dart';
+import '../widgets/event_form_dialog.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -13,7 +16,8 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen>
     with TickerProviderStateMixin {
-  late Future<List<Map<String, dynamic>>> _future;
+  late Future<List<Map<String, dynamic>>> _eventsFuture;
+  Map<String, List<Event>> _eventsByDate = {};
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedDate = DateTime.now();
   late AnimationController _animationController;
@@ -46,7 +50,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
   @override
   void initState() {
     super.initState();
-    _future = SupabaseService.getUpcomingEvents();
+    _loadEvents();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -55,6 +59,36 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
     _animationController.forward();
+  }
+
+  void _loadEvents() {
+    setState(() {
+      _eventsFuture = SupabaseService.getAllEvents();
+    });
+    _eventsFuture.then((eventsData) {
+      _processEvents(eventsData);
+    });
+  }
+
+  void _processEvents(List<Map<String, dynamic>> eventsData) {
+    final events = eventsData.map((data) => Event.fromJson(data)).toList();
+    final eventsByDate = <String, List<Event>>{};
+
+    for (final event in events) {
+      final dateKey = _dateKey(event.startAt);
+      if (eventsByDate[dateKey] == null) {
+        eventsByDate[dateKey] = [];
+      }
+      eventsByDate[dateKey]!.add(event);
+    }
+
+    setState(() {
+      _eventsByDate = eventsByDate;
+    });
+  }
+
+  String _dateKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -79,10 +113,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.calendar_today, color: AppColors.primary),
-          onPressed: () {},
-        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: AppColors.primary),
+            onPressed: _loadEvents,
+            tooltip: 'Refresh Events',
+          ),
+        ],
       ),
       body: AnimatedBuilder(
         animation: _slideAnimation,
@@ -106,6 +143,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showEventDialog(),
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -257,6 +299,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             date.month == _selectedDate.month &&
             date.year == _selectedDate.year;
 
+        final dateKey = _dateKey(date);
+        final hasEvents = _eventsByDate[dateKey]?.isNotEmpty == true;
+
         weekDays.add(
           GestureDetector(
             onTap: () {
@@ -264,6 +309,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                 _selectedDate = date;
               });
             },
+            onLongPress: () => _showEventDialog(selectedDate: date),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 35,
@@ -287,21 +333,40 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                     ? Border.all(color: AppColors.accent, width: 1)
                     : null,
               ),
-              child: Text(
-                '${date.day}',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: isSelected || isToday
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                  color: isSelected
-                      ? Colors.white
-                      : isToday
-                      ? AppColors.accent
-                      : isCurrentMonth
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary.withOpacity(0.5),
-                ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      '${date.day}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: isSelected || isToday
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? Colors.white
+                            : isToday
+                            ? AppColors.accent
+                            : isCurrentMonth
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                  if (hasEvents && !isSelected)
+                    Positioned(
+                      bottom: 2,
+                      right: 2,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -327,94 +392,111 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
   }
 
   Widget _buildEventsSection() {
+    final selectedDateKey = _dateKey(_selectedDate);
+    final eventsForSelectedDate = _eventsByDate[selectedDateKey] ?? [];
+
     return Container(
       margin: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Upcoming Events',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Events',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    '${_selectedDate.day} ${_months[_selectedDate.month - 1]}, ${_selectedDate.year}',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                onPressed: () => _showEventDialog(selectedDate: _selectedDate),
+                icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
+                tooltip: 'Add Event',
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 
           Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                      strokeWidth: 2,
-                    ),
-                  );
-                }
-                final events = snapshot.data ?? [];
-                if (events.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardDark,
-                            borderRadius: BorderRadius.circular(60),
-                            border: Border.all(
-                              color: AppColors.borderLight,
-                              width: 1,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.event_busy,
-                            size: 60,
-                            color: AppColors.textSecondary.withOpacity(0.5),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'No upcoming events',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Your events will appear here',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return ListView.separated(
-                  itemCount: events.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final event = events[index];
-                    return _buildEventCard(event, index);
-                  },
-                );
-              },
-            ),
+            child: eventsForSelectedDate.isEmpty
+                ? _buildEmptyEventsState()
+                : ListView.separated(
+                    itemCount: eventsForSelectedDate.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final event = eventsForSelectedDate[index];
+                      return _buildEventCard(event, index);
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event, int index) {
+  Widget _buildEmptyEventsState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.cardDark,
+              borderRadius: BorderRadius.circular(60),
+              border: Border.all(color: AppColors.borderLight, width: 1),
+            ),
+            child: Icon(
+              Icons.event_available,
+              size: 60,
+              color: AppColors.textSecondary.withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No events for this day',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tap + to create a new event',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          NeumorphicButton(
+            text: 'Add Event',
+            onPressed: () => _showEventDialog(selectedDate: _selectedDate),
+            isGreen: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventCard(Event event, int index) {
     return TweenAnimationBuilder(
       duration: Duration(milliseconds: 300 + (index * 100)),
       tween: Tween<double>(begin: 0.0, end: 1.0),
@@ -423,70 +505,280 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
           offset: Offset(0, 30 * (1 - value)),
           child: Opacity(
             opacity: value,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.cardDark,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderLight, width: 1),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: AppColors.primaryGradient,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+            child: GestureDetector(
+              onTap: () => _showEventDialog(event: event),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardDark,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: event.color,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      child: Icon(
+                        event.type.icon,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(Icons.event, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          event['title'] ?? 'Event',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  event.title,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: event.priority.color.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  event.priority.displayName,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: event.priority.color,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          event['start_at'] ?? '',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        if (event['description'] != null) ...[
                           const SizedBox(height: 4),
-                          Text(
-                            event['description'],
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                event.timeRange,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              if (event.location != null) ...[
+                                const SizedBox(width: 12),
+                                Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    event.location!,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
+                          if (event.description != null &&
+                              event.description!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              event.description!,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    PopupMenuButton<String>(
+                      color: AppColors.cardDark,
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'edit':
+                            _showEventDialog(event: event);
+                            break;
+                          case 'delete':
+                            _deleteEvent(event);
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Edit',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete,
+                                size: 16,
+                                color: AppColors.error,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Delete',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.error,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: Icon(
+                        Icons.more_vert,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showEventDialog({Event? event, DateTime? selectedDate}) {
+    showDialog(
+      context: context,
+      builder: (context) => EventFormDialog(
+        event: event,
+        selectedDate: selectedDate ?? _selectedDate,
+        onSave: (eventData) async {
+          if (event != null) {
+            // Update existing event
+            final updatedEvent = await SupabaseService.updateEvent(
+              event.id,
+              eventData,
+            );
+            if (updatedEvent != null) {
+              _showSnackBar('Event updated successfully', isError: false);
+              _loadEvents();
+            } else {
+              _showSnackBar('Failed to update event', isError: true);
+            }
+          } else {
+            // Create new event
+            final newEvent = await SupabaseService.createEvent(eventData);
+            if (newEvent != null) {
+              _showSnackBar('Event created successfully', isError: false);
+              _loadEvents();
+            } else {
+              _showSnackBar('Failed to create event', isError: true);
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void _deleteEvent(Event event) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.backgroundDark,
+        title: Text(
+          'Delete Event',
+          style: GoogleFonts.poppins(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${event.title}"? This action cannot be undone.',
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final success = await SupabaseService.deleteEvent(event.id);
+              if (success) {
+                _showSnackBar('Event deleted successfully', isError: false);
+                _loadEvents();
+              } else {
+                _showSnackBar('Failed to delete event', isError: true);
+              }
+            },
+            child: Text(
+              'Delete',
+              style: GoogleFonts.inter(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message, {required bool isError}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.inter(color: Colors.white)),
+        backgroundColor: isError ? AppColors.error : AppColors.accent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 }

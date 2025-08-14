@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routing/app_router.dart';
 import '../../../shared/widgets/neumorphic_widgets.dart';
+import '../../../shared/widgets/animated_navigation_bars.dart';
+import '../../../core/providers/navigation_bar_provider.dart';
 
 /// Main Dashboard Screen with Bottom Navigation
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -33,30 +35,48 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         drawer: _buildSideDrawer(context),
         body: widget.child,
-        bottomNavigationBar: NeumorphicBottomNavBar(
-          currentIndex: _getCurrentIndex(context),
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                AppNavigation.toSettings(context);
-                break;
-              case 1:
-                AppNavigation.toNotifications(context);
-                break;
-              case 2:
-                AppNavigation.toDashboard(context);
-                break;
-              case 3:
-                AppNavigation.toCommunity(context);
-                break;
-              case 4:
-                AppNavigation.toApplications(context);
-                break;
-            }
-          },
-        ),
+        bottomNavigationBar: _buildNavigationBar(),
       ),
     );
+  }
+
+  /// Build navigation bar based on user preference
+  Widget _buildNavigationBar() {
+    final navigationType = ref.watch(navigationBarTypeProvider);
+    final currentIndex = _getCurrentIndex(context);
+
+    void onTap(int index) {
+      switch (index) {
+        case 0:
+          AppNavigation.toApplications(context); // Fixed: Applications first
+          break;
+        case 1:
+          AppNavigation.toNotifications(context);
+          break;
+        case 2:
+          AppNavigation.toDashboard(context);
+          break;
+        case 3:
+          AppNavigation.toCommunity(context);
+          break;
+        case 4:
+          AppNavigation.toSettings(context); // Fixed: Settings last
+          break;
+      }
+    }
+
+    switch (navigationType) {
+      case NavigationBarType.fluidGlass:
+        return FluidGlassNavigationBar(
+          currentIndex: currentIndex,
+          onTap: onTap,
+        );
+      case NavigationBarType.bubble:
+        return BubbleNavigationBar(currentIndex: currentIndex, onTap: onTap);
+      case NavigationBarType.neumorphic:
+      default:
+        return NeumorphicBottomNavBar(currentIndex: currentIndex, onTap: onTap);
+    }
   }
 
   /// Handle back button press with double tap to exit functionality
@@ -98,9 +118,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   /// Get current index based on route
   int _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).fullPath;
-    if (location?.startsWith('/settings') == true) return 0;
-    if (location?.startsWith('/applications') == true) return 4;
+    if (location?.startsWith('/applications') == true) {
+      return 0; // Fixed: Applications first
+    }
+    if (location?.startsWith('/notifications') == true) return 1;
     if (location?.startsWith('/community') == true) return 3;
+    if (location?.startsWith('/settings') == true) {
+      return 4; // Fixed: Settings last
+    }
     return 2; // Default to dashboard/home
   }
 
