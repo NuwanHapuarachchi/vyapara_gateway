@@ -148,14 +148,14 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 100,
       floating: false,
-      pinned: true,
+      pinned: false,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+        titlePadding: const EdgeInsets.only(left: 20, bottom: 10),
         title: Row(
           children: [
             Container(
@@ -210,7 +210,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'Approved',
                 '${stats['approved']}',
                 Icons.check_circle_outline,
-                AppColors.primary,
+                AppColors.success,
               ),
             ),
             const SizedBox(width: 12),
@@ -219,7 +219,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'In Progress',
                 '${stats['inProgress']}',
                 Icons.timelapse_outlined,
-                AppColors.primary,
+                AppColors.warning,
               ),
             ),
             const SizedBox(width: 12),
@@ -228,7 +228,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 'Rejected',
                 '${stats['rejected']}',
                 Icons.cancel_outlined,
-                AppColors.primary,
+                AppColors.error,
               ),
             ),
           ],
@@ -253,12 +253,15 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  color.withValues(alpha: 0.15),
-                  color.withValues(alpha: 0.08),
+                  color.withValues(alpha: 0.18),
+                  color.withValues(alpha: 0.10),
                 ],
               ),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+              border: Border.all(
+                color: color.withValues(alpha: 0.35),
+                width: 1,
+              ),
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -270,6 +273,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.onSurface,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
@@ -281,6 +287,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                   ? AppColors.textSecondary
                   : AppColors.textSecondaryLight,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -331,28 +340,30 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
     final isSelected = _currentFilter == filter;
 
     final Color tint = _getFilterTint(filter);
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color contentColor = isSelected
-        ? Colors.white
-        : (Theme.of(context).brightness == Brightness.dark
-              ? AppColors.textSecondary
-              : AppColors.textSecondaryLight);
+        ? (isDark ? Colors.white : tint)
+        : (isDark ? AppColors.textSecondary : AppColors.textSecondaryLight);
 
     return Container(
       margin: const EdgeInsets.only(right: 12),
       child: GlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         borderRadius: BorderRadius.circular(12),
-        tint: isSelected ? tint : AppColors.textSecondary,
+        // For light mode we want a light background when selected so text stays visible
+        tint: isSelected
+            ? (isDark ? tint : AppColors.textSecondary)
+            : AppColors.textSecondary,
         onTap: () => _setFilter(filter),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: contentColor),
-            const SizedBox(width: 8),
+            Icon(icon, size: 18, color: contentColor),
+            const SizedBox(width: 10),
             Text(
               label,
               style: GoogleFonts.inter(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: contentColor,
               ),
@@ -432,10 +443,12 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                           child: Text(
                             application.title,
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 17,
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Container(
@@ -465,7 +478,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                     Text(
                       application.description,
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Theme.of(context).brightness == Brightness.dark
                             ? AppColors.textSecondary
                             : AppColors.textSecondaryLight,
@@ -696,54 +709,57 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Start New Application',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Start New Application',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Choose the type of business registration or service you need',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              const SizedBox(height: 6),
+              Text(
+                'Choose the type of business registration or service you need',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            _buildApplicationTypeCard(
-              'Company Registration',
-              'Register your private limited company',
-              Icons.business,
-              const Color(0xFF3B82F6),
-            ),
-            _buildApplicationTypeCard(
-              'Bank Account Opening',
-              'Open business bank account',
-              Icons.account_balance,
-              const Color(0xFF10B981),
-            ),
-            _buildApplicationTypeCard(
-              'Tax Registration',
-              'Register for VAT and tax identification',
-              Icons.receipt_long,
-              const Color(0xFFF59E0B),
-            ),
-            _buildApplicationTypeCard(
-              'Business License',
-              'Obtain municipal operating license',
-              Icons.verified,
-              const Color(0xFF8B5CF6),
-            ),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 20),
+              _buildApplicationTypeCard(
+                'Register your private limited company',
+                'Fast-track your company registration',
+                Icons.business,
+                const Color(0xFF3B82F6),
+              ),
+              _buildApplicationTypeCard(
+                'Open business bank account',
+                'Get started with payments and payroll',
+                Icons.account_balance,
+                const Color(0xFF10B981),
+              ),
+              _buildApplicationTypeCard(
+                'Register for VAT and tax identification',
+                'Stay compliant with tax authorities',
+                Icons.receipt_long,
+                const Color(0xFFF59E0B),
+              ),
+              _buildApplicationTypeCard(
+                'Obtain municipal operating license',
+                'Apply for your trade/business license',
+                Icons.verified,
+                const Color(0xFF8B5CF6),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
@@ -784,9 +800,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                   Text(
                     title,
                     style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -794,7 +810,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                     description,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],

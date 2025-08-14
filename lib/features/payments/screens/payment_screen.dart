@@ -64,7 +64,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
@@ -73,20 +73,17 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           onPressed: () {},
         ),
       ),
-      body: Column(
-        children: [
-          // Payment Summary Card
-          _buildPaymentSummaryCard(),
-
-          // Quick Payment Actions
-          _buildQuickPaymentActions(),
-
-          // Filters
-          _buildFiltersSection(),
-
-          // Payment History
-          Expanded(child: _buildPaymentHistory()),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () async => _refreshPayments(),
+        child: ListView(
+          children: [
+            _buildPaymentSummaryCard(),
+            _buildQuickPaymentActions(),
+            _buildFiltersSection(),
+            const SizedBox(height: 8),
+            _buildPaymentHistory(),
+          ],
+        ),
       ),
     );
   }
@@ -99,12 +96,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -197,20 +194,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 12),
 
           SizedBox(
-            height: 120,
+            height: 140,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _quickPayments.length,
               itemBuilder: (context, index) {
                 final payment = _quickPayments[index];
                 return Container(
-                  width: 200,
+                  width: 230,
                   margin: const EdgeInsets.only(right: 12),
                   child: _buildQuickPaymentCard(payment),
                 );
@@ -230,9 +227,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.backgroundLight,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.cardDark
+              : AppColors.cardLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderLight, width: 1),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.borderLight
+                : AppColors.borderLightTheme,
+            width: 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +247,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: (payment['color'] as Color).withOpacity(0.1),
+                    color: (payment['color'] as Color).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -258,7 +262,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -271,7 +275,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -283,7 +287,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               payment['description'] as String,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondaryLight,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -316,18 +322,26 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   _selectedFilter = filter;
                 });
               },
-              backgroundColor: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.cardDark 
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
                   : AppColors.cardLight,
-              selectedColor: AppColors.primary.withOpacity(0.2),
+              selectedColor: AppColors.primary.withValues(alpha: 0.2),
               checkmarkColor: AppColors.primary,
               labelStyle: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected
+                    ? AppColors.primary
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight),
               ),
               side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                color: isSelected
+                    ? AppColors.primary
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.borderLight
+                          : AppColors.borderLightTheme),
                 width: 1,
               ),
             ),
@@ -348,39 +362,38 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
-
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final allPayments = snapshot.data ?? [];
-                final filteredPayments = _filterPayments(allPayments);
-
-                if (filteredPayments.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async => _refreshPayments(),
-                  child: ListView.separated(
-                    itemCount: filteredPayments.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final payment = filteredPayments[index];
-                      return _buildPaymentCard(payment);
-                    },
-                  ),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(child: CircularProgressIndicator()),
                 );
-              },
-            ),
+              }
+
+              final allPayments = snapshot.data ?? [];
+              final filteredPayments = _filterPayments(allPayments);
+
+              if (filteredPayments.isEmpty) {
+                return _buildEmptyState();
+              }
+
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredPayments.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final payment = filteredPayments[index];
+                  return _buildPaymentCard(payment);
+                },
+              );
+            },
           ),
         ],
       ),
@@ -396,13 +409,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.backgroundLight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.cardLight,
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
               Icons.payment,
               size: 60,
-              color: AppColors.textSecondary.withOpacity(0.5),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight)
+                      .withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -411,7 +430,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -419,7 +438,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             'Your payment history will appear here',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],
@@ -435,9 +456,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight, width: 1),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.borderLight
+              : AppColors.borderLightTheme,
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -447,7 +475,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(statusIcon, color: statusColor, size: 24),
@@ -464,7 +492,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -476,7 +504,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
+                            color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -493,7 +521,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           _formatDate(payment['created_at']),
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.textSecondary
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
                       ],
@@ -507,7 +538,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -526,8 +557,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      minimumSize: const Size(0, 44),
+                      textStyle: GoogleFonts.inter(fontSize: 14),
                     ),
-                    child: const Text('Cancel'),
+                    child: const Text(
+                      'Cancel',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -540,6 +577,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
+                      ),
+                      minimumSize: const Size(0, 44),
+                      textStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     child: const Text('Pay Now'),

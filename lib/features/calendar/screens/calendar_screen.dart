@@ -109,7 +109,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
@@ -128,16 +128,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             offset: Offset(0, 50 * (1 - _slideAnimation.value)),
             child: Opacity(
               opacity: _slideAnimation.value.clamp(0.0, 1.0),
-              child: Column(
+              child: ListView(
                 children: [
-                  // Calendar Header
                   _buildCalendarHeader(),
-
-                  // Calendar Grid
                   _buildCalendarGrid(),
-
-                  // Events Section
-                  Expanded(child: _buildEventsSection()),
+                  _buildEventsSection(),
                 ],
               ),
             ),
@@ -171,13 +166,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.cardDark,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
+                    : AppColors.cardLight,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.borderLight, width: 1),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.borderLight
+                      : AppColors.borderLightTheme,
+                  width: 1,
+                ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.chevron_left,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -190,14 +192,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Text(
                 '${_focusedDate.year}',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -216,13 +220,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.cardDark,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
+                    : AppColors.cardLight,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.borderLight, width: 1),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.borderLight
+                      : AppColors.borderLightTheme,
+                  width: 1,
+                ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.chevron_right,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -236,9 +247,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight, width: 1),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.borderLight
+              : AppColors.borderLightTheme,
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
@@ -256,7 +274,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.textSecondary
+                            : AppColors.textSecondaryLight,
                       ),
                     ),
                   ),
@@ -326,7 +346,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                 color: isSelected
                     ? null
                     : isToday
-                    ? AppColors.accent.withOpacity(0.2)
+                    ? AppColors.accent.withValues(alpha: 0.2)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: isToday && !isSelected
@@ -348,8 +368,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                             : isToday
                             ? AppColors.accent
                             : isCurrentMonth
-                            ? AppColors.textPrimary
-                            : AppColors.textSecondary.withOpacity(0.5),
+                            ? Theme.of(context).colorScheme.onSurface
+                            : (Theme.of(context).brightness == Brightness.dark
+                                      ? AppColors.textSecondary
+                                      : AppColors.textSecondaryLight)
+                                  .withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -411,14 +434,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
                     '${_selectedDate.day} ${_months[_selectedDate.month - 1]}, ${_selectedDate.year}',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -432,18 +457,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
           ),
           const SizedBox(height: 16),
 
-          Expanded(
-            child: eventsForSelectedDate.isEmpty
-                ? _buildEmptyEventsState()
-                : ListView.separated(
-                    itemCount: eventsForSelectedDate.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final event = eventsForSelectedDate[index];
-                      return _buildEventCard(event, index);
-                    },
-                  ),
-          ),
+          if (eventsForSelectedDate.isEmpty)
+            _buildEmptyEventsState()
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 16),
+              itemCount: eventsForSelectedDate.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final event = eventsForSelectedDate[index];
+                return _buildEventCard(event, index);
+              },
+            ),
         ],
       ),
     );
@@ -458,14 +485,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.cardDark,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.cardLight,
               borderRadius: BorderRadius.circular(60),
-              border: Border.all(color: AppColors.borderLight, width: 1),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.borderLight
+                    : AppColors.borderLightTheme,
+                width: 1,
+              ),
             ),
             child: Icon(
               Icons.event_available,
               size: 60,
-              color: AppColors.textSecondary.withOpacity(0.5),
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight)
+                      .withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -474,7 +512,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -482,7 +520,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
             'Tap + to create a new event',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const SizedBox(height: 16),
@@ -510,9 +550,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.cardDark,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.cardDark
+                      : AppColors.cardLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderLight, width: 1),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.borderLight
+                        : AppColors.borderLightTheme,
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -552,7 +599,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: event.priority.color.withOpacity(0.2),
+                                  color: event.priority.color.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -572,14 +621,22 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                               Icon(
                                 Icons.access_time,
                                 size: 14,
-                                color: AppColors.textSecondary,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.textSecondary
+                                    : AppColors.textSecondaryLight,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 event.timeRange,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: AppColors.textSecondary,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.textSecondary
+                                      : AppColors.textSecondaryLight,
                                 ),
                               ),
                               if (event.location != null) ...[
@@ -587,7 +644,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                 Icon(
                                   Icons.location_on,
                                   size: 14,
-                                  color: AppColors.textSecondary,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.textSecondary
+                                      : AppColors.textSecondaryLight,
                                 ),
                                 const SizedBox(width: 4),
                                 Expanded(
@@ -595,7 +656,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                                     event.location!,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
-                                      color: AppColors.textSecondary,
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? AppColors.textSecondary
+                                          : AppColors.textSecondaryLight,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -610,7 +675,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                               event.description!,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.textSecondary
+                                    : AppColors.textSecondaryLight,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -620,7 +689,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen>
                       ),
                     ),
                     PopupMenuButton<String>(
-                      color: AppColors.cardDark,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.cardDark
+                          : AppColors.cardLight,
                       onSelected: (value) {
                         switch (value) {
                           case 'edit':

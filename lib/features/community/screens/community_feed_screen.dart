@@ -42,7 +42,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
             'Community',
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
-              color: null,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           actions: [
@@ -73,7 +73,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFFA9A9A9),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -81,7 +81,9 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         'Ask questions, share insights, and connect with other business owners',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: const Color(0xFF888888),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],
@@ -114,7 +116,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     post.userName[0].toUpperCase(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
-                      color: null,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -128,12 +130,17 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: null,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Text(
                         _formatTimeAgo(post.createdAt),
-                        style: GoogleFonts.inter(fontSize: 12, color: null),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondaryLight,
+                        ),
                       ),
                     ],
                   ),
@@ -148,7 +155,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               post.question,
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: null,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -157,7 +164,12 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               const SizedBox(height: 8),
               Text(
                 post.description,
-                style: GoogleFonts.inter(fontSize: 14, color: null),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
+                ),
               ),
             ],
 
@@ -177,7 +189,9 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                             color: AppColors.primary,
                           ),
                         ),
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundColor: AppColors.primary.withValues(
+                          alpha: 0.1,
+                        ),
                         side: BorderSide.none,
                       ),
                     )
@@ -239,7 +253,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: null,
+                color: Colors.white,
               ),
             ),
           ),
@@ -248,7 +262,9 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -261,20 +277,28 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: null,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         _formatTimeAgo(reply.createdAt),
-                        style: GoogleFonts.inter(fontSize: 11, color: null),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondaryLight,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     reply.content,
-                    style: GoogleFonts.inter(fontSize: 13, color: null),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -309,7 +333,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: null,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 20),
@@ -377,7 +401,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: null,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 20),
