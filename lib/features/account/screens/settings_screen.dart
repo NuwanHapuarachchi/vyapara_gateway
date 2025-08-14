@@ -124,50 +124,68 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : 'U',
-                style: GoogleFonts.poppins(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    user.fullName.isNotEmpty
+                        ? user.fullName[0].toUpperCase()
+                        : 'U',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user.fullName,
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.fullName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        user.email,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
-            Text(
-              user.email,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: isDark
-                    ? AppColors.textSecondary
-                    : AppColors.textSecondaryLight,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Edit profile feature coming soon!'),
+                    ),
+                  );
+                },
+                child: const Text('change information?'),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Edit profile feature coming soon!'),
-                  ),
-                );
-              },
-              child: const Text('change information?'),
             ),
           ],
         ),
