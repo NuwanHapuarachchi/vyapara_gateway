@@ -107,6 +107,14 @@ class ErrorHandler {
       return 'An account with this email address already exists.';
     }
 
+    if (errorLower.contains(
+          'duplicate key value violates unique constraint "user_profiles_nic_key"',
+        ) ||
+        errorLower.contains('nic_key') ||
+        errorLower.contains('nic already registered')) {
+      return 'NIC number is already registered. Please use a different NIC or contact support.';
+    }
+
     if (errorLower.contains('weak password')) {
       return 'Password is too weak. Please choose a stronger password.';
     }

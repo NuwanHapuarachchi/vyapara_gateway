@@ -723,6 +723,21 @@ class SupabaseService {
     }
   }
 
+  /// Clean up orphaned auth users (users without profiles)
+  static Future<void> cleanupOrphanedUsers() async {
+    try {
+      // This would require admin privileges, so we'll just log the issue
+      print(
+        'Warning: Orphaned auth users detected. Manual cleanup may be required.',
+      );
+      print(
+        'Check Supabase Dashboard > Authentication > Users for users without profiles.',
+      );
+    } catch (e) {
+      print('Error during cleanup: $e');
+    }
+  }
+
   // Removed duplicate - using the one in Business Registration section below
 
   /// Validate NIC against sample database

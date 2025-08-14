@@ -119,17 +119,33 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
     try {
       print('Starting signup process for email: $email');
 
-      // Check if NIC already exists (temporarily disabled to avoid RLS issues)
-      // TODO: Re-enable NIC checking once RLS policies are properly configured
-      // final existingNic = await _supabase
-      //     .from('user_profiles')
-      //     .select('nic')
-      //     .eq('nic', nic)
-      //     .maybeSingle();
-      //
-      // if (existingNic != null) {
-      //   throw Exception('NIC already registered');
-      // }
+      // Check internet connectivity first
+      if (!await SupabaseService.hasInternetConnection()) {
+        throw Exception(
+          'No internet connection. Please check your network and try again.',
+        );
+      }
+
+      // Check if NIC already exists before creating auth user
+      try {
+        final existingNic = await _supabase
+            .from('user_profiles')
+            .select('nic')
+            .eq('nic', nic)
+            .maybeSingle();
+
+        if (existingNic != null) {
+          throw Exception(
+            'NIC number is already registered. Please use a different NIC or contact support.',
+          );
+        }
+      } catch (e) {
+        // If it's a network error, continue with signup
+        if (!ErrorHandler.isNetworkError(e)) {
+          rethrow;
+        }
+        print('NIC check failed due to network issue, proceeding with signup');
+      }
 
       // Create auth user
       final response = await _supabase.auth.signUp(
@@ -177,13 +193,34 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
         }
       } catch (profileError) {
         print('Profile creation error: $profileError');
-        // Try to load existing profile in case it was created by trigger
+
+        // Check if it's a duplicate NIC error
+        if (profileError.toString().contains(
+          'duplicate key value violates unique constraint "user_profiles_nic_key"',
+        )) {
+          // Delete the auth user since profile creation failed
+          try {
+            await _supabase.auth.admin.deleteUser(userId);
+            print('Deleted auth user due to profile creation failure');
+          } catch (deleteError) {
+            print('Failed to delete auth user: $deleteError');
+          }
+          throw Exception(
+            'NIC number is already registered. Please use a different NIC or contact support.',
+          );
+        }
+
+        // For other errors, try to load existing profile in case it was created by trigger
         await _loadUserProfile();
       }
     } on AuthException catch (e) {
-      state = AsyncValue.error(e.message, StackTrace.current);
+      state = AsyncValue.error(
+        ErrorHandler.getHumanReadableError(e.message),
+        StackTrace.current,
+      );
     } catch (e) {
-      state = AsyncValue.error('Signup failed: $e', StackTrace.current);
+      final errorMessage = ErrorHandler.getHumanReadableError(e.toString());
+      state = AsyncValue.error(errorMessage, StackTrace.current);
     }
   }
 
