@@ -52,11 +52,11 @@ class _BusinessRegistrationWizardState
 
   bool _canProceedToNextStep() {
     final registration = ref.read(businessRegistrationProvider);
-    
+
     switch (_currentStep) {
       case BusinessRegistrationStep.businessType:
         return registration?.businessType.id.isNotEmpty == true;
-      
+
       case BusinessRegistrationStep.businessDetails:
         return registration != null &&
             registration.businessName.isNotEmpty &&
@@ -66,15 +66,15 @@ class _BusinessRegistrationWizardState
             registration.businessAddress.district.isNotEmpty &&
             registration.businessAddress.province.isNotEmpty &&
             registration.businessAddress.postalCode.isNotEmpty;
-      
+
       case BusinessRegistrationStep.ownersPartners:
         return registration?.owners.isNotEmpty == true;
-      
+
       case BusinessRegistrationStep.documentUpload:
         final requiredDocs = registration?.businessType.requiredDocuments ?? [];
         final uploadedDocs = registration?.uploadedDocuments ?? {};
         return requiredDocs.every((doc) => uploadedDocs.containsKey(doc));
-      
+
       case BusinessRegistrationStep.reviewSubmit:
         return true; // Last step, always allow
     }
@@ -145,10 +145,12 @@ class _BusinessRegistrationWizardState
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, 
-              color: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.textPrimary 
-                  : AppColors.textPrimaryLight),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.textPrimary
+                : AppColors.textPrimaryLight,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -156,7 +158,9 @@ class _BusinessRegistrationWizardState
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.textPrimary
+                : AppColors.textPrimaryLight,
           ),
         ),
         centerTitle: true,
@@ -222,6 +226,7 @@ class _BusinessRegistrationWizardState
   }
 
   Widget _buildProgressIndicator() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -234,8 +239,8 @@ class _BusinessRegistrationWizardState
               final isCurrent = step == _currentStep;
 
               return GestureDetector(
-                onTap: step.index <= _currentStep.index 
-                    ? () => _goToStep(step) 
+                onTap: step.index <= _currentStep.index
+                    ? () => _goToStep(step)
                     : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -246,8 +251,12 @@ class _BusinessRegistrationWizardState
                     color: isActive
                         ? AppColors.primary
                         : step.index > _currentStep.index
-                            ? AppColors.backgroundLight.withOpacity(0.5)
-                            : AppColors.backgroundLight,
+                        ? (isDark
+                              ? AppColors.backgroundDark.withOpacity(0.5)
+                              : AppColors.backgroundLight.withOpacity(0.5))
+                        : (isDark
+                              ? AppColors.backgroundDark
+                              : AppColors.backgroundLight),
                     border: isCurrent
                         ? Border.all(color: AppColors.accent, width: 2)
                         : null,
@@ -267,8 +276,15 @@ class _BusinessRegistrationWizardState
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: step.index > _currentStep.index
-                                  ? AppColors.textSecondary.withOpacity(0.5)
-                                  : AppColors.textSecondary,
+                                  ? (isDark
+                                        ? AppColors.textSecondary.withOpacity(
+                                            0.5,
+                                          )
+                                        : AppColors.textSecondaryLight
+                                              .withOpacity(0.5))
+                                  : (isDark
+                                        ? AppColors.textSecondary
+                                        : AppColors.textSecondaryLight),
                             ),
                           ),
                   ),
@@ -284,7 +300,9 @@ class _BusinessRegistrationWizardState
             height: 4,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.backgroundLight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.backgroundDark
+                  : AppColors.backgroundLight,
               borderRadius: BorderRadius.circular(2),
             ),
             child: FractionallySizedBox(
@@ -306,6 +324,7 @@ class _BusinessRegistrationWizardState
   }
 
   Widget _buildStepHeader() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Column(
@@ -325,7 +344,9 @@ class _BusinessRegistrationWizardState
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: isDark
+                  ? AppColors.textPrimary
+                  : AppColors.textPrimaryLight,
             ),
           ),
           const SizedBox(height: 4),
@@ -333,7 +354,9 @@ class _BusinessRegistrationWizardState
             _currentStep.description,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],

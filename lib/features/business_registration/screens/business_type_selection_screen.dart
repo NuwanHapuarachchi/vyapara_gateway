@@ -65,6 +65,7 @@ class _BusinessTypeSelectionScreenState
   }
 
   Widget _buildBusinessTypeCard(BusinessType businessType, bool isSelected) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: GestureDetector(
@@ -78,20 +79,43 @@ class _BusinessTypeSelectionScreenState
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
+            // Improve selected visibility with gradient + glow
             color: isSelected
-                ? AppColors.primary.withOpacity(0.15)
-                : const Color(0xFF2D2D2D), // Dark card background
+                ? null
+                : (isDark ? AppColors.cardDark : AppColors.cardLight),
+            gradient: isSelected
+                ? LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      AppColors.primary.withOpacity(isDark ? 0.22 : 0.14),
+                      Colors.transparent,
+                    ],
+                  )
+                : null,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.borderLight,
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark
+                        ? AppColors.borderLight
+                        : AppColors.borderLightTheme),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: isDark
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
+              if (isSelected)
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
             ],
           ),
           child: Column(
@@ -105,8 +129,13 @@ class _BusinessTypeSelectionScreenState
                     decoration: BoxDecoration(
                       color: _getBusinessTypeColor(
                         businessType.type,
-                      ).withOpacity(0.1),
+                      ).withOpacity(isSelected ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _getBusinessTypeColor(
+                          businessType.type,
+                        ).withOpacity(isSelected ? 0.45 : 0.25),
+                      ),
                     ),
                     child: Icon(
                       _getBusinessTypeIcon(businessType.type),
@@ -124,14 +153,20 @@ class _BusinessTypeSelectionScreenState
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: isSelected
+                                ? AppColors.primary
+                                : (isDark
+                                      ? AppColors.textPrimary
+                                      : AppColors.textPrimaryLight),
                           ),
                         ),
                         Text(
                           businessType.description,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondary
+                                : AppColors.textSecondaryLight,
                           ),
                         ),
                       ],
@@ -162,13 +197,15 @@ class _BusinessTypeSelectionScreenState
                   _buildInfoChip(
                     Icons.schedule,
                     '${businessType.estimatedProcessingDays} days',
-                    Colors.orange,
+                    isDark ? Colors.orange : const Color(0xFFEA580C),
+                    bgOpacity: isSelected ? 0.18 : 0.10,
                   ),
                   const SizedBox(width: 12),
                   _buildInfoChip(
                     Icons.payment,
                     'LKR ${businessType.baseFee.toStringAsFixed(2)}',
-                    Colors.green,
+                    isDark ? Colors.green : const Color(0xFF059669),
+                    bgOpacity: isSelected ? 0.18 : 0.10,
                   ),
                 ],
               ),
@@ -180,7 +217,9 @@ class _BusinessTypeSelectionScreenState
                 '${businessType.requiredDocuments.length} documents required',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: isDark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -191,11 +230,16 @@ class _BusinessTypeSelectionScreenState
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String text, Color color) {
+  Widget _buildInfoChip(
+    IconData icon,
+    String text,
+    Color color, {
+    double bgOpacity = 0.10,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(bgOpacity),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(

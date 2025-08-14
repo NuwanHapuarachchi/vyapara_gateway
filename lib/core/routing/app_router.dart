@@ -282,6 +282,11 @@ class AppNavigation {
     context.go('/payments');
   }
 
+  /// Navigate to business registration wizard
+  static void toBusinessRegistration(BuildContext context) {
+    context.go('/business-registration');
+  }
+
   /// Navigate to mentor chat
   static void toMentorChat(BuildContext context, String mentorId) {
     context.go('/mentor-chat/$mentorId');

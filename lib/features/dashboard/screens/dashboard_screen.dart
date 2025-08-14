@@ -585,7 +585,7 @@ class DashboardHomeView extends ConsumerWidget {
       child: GlassCard(
         padding: const EdgeInsets.all(20),
         tint: AppColors.accent,
-        onTap: () => AppNavigation.toApplications(context),
+        onTap: () => AppNavigation.toBusinessRegistration(context),
         child: Column(
           children: [
             Container(

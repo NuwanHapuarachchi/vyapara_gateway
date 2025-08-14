@@ -122,52 +122,27 @@ class NeumorphicButton extends StatelessWidget {
 
     return Container(
       width: 318,
-      height: 65,
+      height: 58,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: isGreen
-            ? [
-                // Drop shadow - dark
-                BoxShadow(
-                  color: const Color(0xFF252525).withOpacity(0.34),
-                  offset: const Offset(10, 10),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-                // Drop shadow - light
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.25),
-                  offset: const Offset(-10, -10),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                ),
-              ]
-            : [
-                // Default button shadows
-                BoxShadow(
-                  color: const Color(0xFF252525).withOpacity(0.34),
-                  offset: const Offset(4, 4),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.25),
-                  offset: const Offset(-4, -4),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-              ],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isGreen
+              ? AppColors.accent.withOpacity(0.0)
+              : (isDark ? AppColors.borderLight : AppColors.borderLightTheme),
+          width: isGreen ? 0.0 : 1.0,
+        ),
+        boxShadow: [],
       ),
       child: Material(
         color: isGreen
             ? AppColors.accent
-            : (isDark ? AppColors.backgroundDark : AppColors.backgroundLight),
-        borderRadius: BorderRadius.circular(20),
+            : (isDark ? AppColors.backgroundDark : AppColors.surfaceLight),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
           onTap: isLoading ? null : onPressed,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
             child: Center(
               child: isLoading
                   ? SizedBox(
@@ -188,14 +163,12 @@ class NeumorphicButton extends StatelessWidget {
                       text,
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: isGreen
-                            ? (isDark
-                                  ? AppColors.backgroundDark
-                                  : AppColors.backgroundLight)
+                            ? Colors.white
                             : (isDark
-                                  ? AppColors.textSecondary
-                                  : AppColors.textSecondaryLight),
+                                  ? AppColors.textPrimary
+                                  : AppColors.textPrimaryLight),
                       ),
                     ),
             ),
