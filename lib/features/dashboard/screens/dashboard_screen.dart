@@ -442,7 +442,7 @@ class DashboardHomeView extends ConsumerWidget {
 
         // Applications Card
         GlassCard(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           tint: AppColors.primary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,8 +453,8 @@ class DashboardHomeView extends ConsumerWidget {
                   Row(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(8),
@@ -462,14 +462,14 @@ class DashboardHomeView extends ConsumerWidget {
                         child: const Icon(
                           Icons.business_center,
                           color: Colors.white,
-                          size: 18,
+                          size: 16,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'My Business Applications',
                         style: GoogleFonts.inter(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.primary,
                         ),
@@ -487,7 +487,7 @@ class DashboardHomeView extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Application items
               _buildApplicationItem(
@@ -498,7 +498,7 @@ class DashboardHomeView extends ConsumerWidget {
                 const Color(0xFFF59E0B),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               _buildApplicationItem(
                 context,
@@ -508,32 +508,7 @@ class DashboardHomeView extends ConsumerWidget {
                 const Color(0xFF10B981),
               ),
 
-              const SizedBox(height: 12),
-
-              _buildApplicationItem(
-                context,
-                'Trade Permit Application',
-                'Document Required',
-                Icons.warning,
-                const Color(0xFFEF4444),
-              ),
-
-              const SizedBox(height: 16),
-
-              GestureDetector(
-                onTap: () => AppNavigation.toApplications(context),
-                child: Center(
-                  child: Text(
-                    'View All Applications',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.accent,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
+              // Removed "View All Applications" link for a cleaner card
             ],
           ),
         ),
@@ -549,16 +524,31 @@ class DashboardHomeView extends ConsumerWidget {
     Color statusColor,
   ) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF323030), width: 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF3A3A3A), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.surface,
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+          ],
+        ),
       ),
       child: Row(
         children: [
-          Icon(statusIcon, color: statusColor, size: 20),
-          const SizedBox(width: 12),
+          Icon(statusIcon, color: statusColor, size: 18),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,16 +556,16 @@ class DashboardHomeView extends ConsumerWidget {
                 Text(
                   title,
                   style: GoogleFonts.inter(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFFA9A9A9),
+                    color: const Color(0xFFBBBBBB),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   status,
                   style: GoogleFonts.inter(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w400,
                     color: statusColor,
                   ),
@@ -583,7 +573,7 @@ class DashboardHomeView extends ConsumerWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Color(0xFF6B7280), size: 16),
+          const Icon(Icons.chevron_right, color: Color(0xFF8B8E93), size: 14),
         ],
       ),
     );
