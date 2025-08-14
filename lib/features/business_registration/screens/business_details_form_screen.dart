@@ -376,7 +376,9 @@ class _BusinessDetailsFormScreenState
               color: AppColors.textSecondary,
             ),
             filled: true,
-            fillColor: AppColors.backgroundLight,
+            fillColor: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.cardDark 
+                : const Color(0xFFF4F4F5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.borderLight),

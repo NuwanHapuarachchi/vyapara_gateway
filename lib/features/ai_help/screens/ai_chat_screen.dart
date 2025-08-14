@@ -236,7 +236,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               decoration: InputDecoration(
                 hintText: 'Type your message...',
                 filled: true,
-                fillColor: AppColors.cardDark,
+                fillColor: Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark 
+                    : const Color(0xFFF4F4F5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

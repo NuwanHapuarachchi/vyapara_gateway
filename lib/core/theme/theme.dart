@@ -239,11 +239,11 @@ class AppTheme {
         fillColor: const Color(0xFFF4F4F5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderSide: const BorderSide(color: AppColors.borderLightTheme),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          borderSide: const BorderSide(color: AppColors.borderLightTheme),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -288,7 +288,7 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return AppColors.primary.withOpacity(0.3);
           }
-          return const Color(0xFFE5E7EB);
+          return AppColors.borderLightTheme;
         }),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -299,7 +299,7 @@ class AppTheme {
         size: 24,
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFE5E7EB),
+        color: AppColors.borderLightTheme,
         thickness: 1,
       ),
     );

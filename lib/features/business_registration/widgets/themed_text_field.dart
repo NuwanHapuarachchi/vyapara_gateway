@@ -55,7 +55,13 @@ class ThemedTextField extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             filled: true,
-            fillColor: enabled ? AppColors.backgroundLight : AppColors.backgroundLight.withOpacity(0.5),
+            fillColor: enabled 
+                ? (Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark 
+                    : const Color(0xFFF4F4F5))
+                : (Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark.withOpacity(0.5) 
+                    : const Color(0xFFF4F4F5).withOpacity(0.5)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.borderLight),
@@ -141,7 +147,13 @@ class ThemedDropdownField extends StatelessWidget {
           validator: validator,
           decoration: InputDecoration(
             filled: true,
-            fillColor: enabled ? AppColors.backgroundLight : AppColors.backgroundLight.withOpacity(0.5),
+            fillColor: enabled 
+                ? (Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark 
+                    : const Color(0xFFF4F4F5))
+                : (Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark.withOpacity(0.5) 
+                    : const Color(0xFFF4F4F5).withOpacity(0.5)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.borderLight),

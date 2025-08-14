@@ -502,7 +502,9 @@ class _OwnersPartnersFormScreenState
                       color: AppColors.textSecondary,
                     ),
                     filled: true,
-                    fillColor: AppColors.backgroundLight,
+                    fillColor: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.cardDark 
+                        : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: AppColors.borderLight),
@@ -593,7 +595,9 @@ class _OwnersPartnersFormScreenState
                 color: AppColors.textSecondary,
               ),
               filled: true,
-              fillColor: AppColors.backgroundLight,
+              fillColor: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.cardDark 
+                  : const Color(0xFFF4F4F5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.borderLight),
@@ -631,7 +635,9 @@ class _OwnersPartnersFormScreenState
             decoration: InputDecoration(
               labelText: 'Address *',
               filled: true,
-              fillColor: AppColors.backgroundLight,
+              fillColor: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.cardDark 
+                  : const Color(0xFFF4F4F5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.borderLight),
@@ -658,7 +664,9 @@ class _OwnersPartnersFormScreenState
                     labelText: 'Phone Number *',
                     hintText: '077-1234567',
                     filled: true,
-                    fillColor: AppColors.backgroundLight,
+                    fillColor: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.cardDark 
+                        : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: AppColors.borderLight),
@@ -680,7 +688,9 @@ class _OwnersPartnersFormScreenState
                   decoration: InputDecoration(
                     labelText: 'Email *',
                     filled: true,
-                    fillColor: AppColors.backgroundLight,
+                    fillColor: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.cardDark 
+                        : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: AppColors.borderLight),
@@ -714,7 +724,9 @@ class _OwnersPartnersFormScreenState
                       labelText: 'Role',
                       hintText: 'e.g. Managing Partner',
                       filled: true,
-                      fillColor: AppColors.backgroundLight,
+                      fillColor: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.cardDark 
+                        : const Color(0xFFF4F4F5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: AppColors.borderLight),
@@ -731,7 +743,9 @@ class _OwnersPartnersFormScreenState
                       labelText: 'Partnership %',
                       hintText: 'e.g. 25.0',
                       filled: true,
-                      fillColor: AppColors.backgroundLight,
+                      fillColor: Theme.of(context).brightness == Brightness.dark 
+                        ? AppColors.cardDark 
+                        : const Color(0xFFF4F4F5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: AppColors.borderLight),

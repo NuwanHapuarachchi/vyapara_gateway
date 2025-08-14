@@ -48,16 +48,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
           'Notifications',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
@@ -139,16 +139,26 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                   _selectedFilter = filter;
                 });
               },
-              backgroundColor: AppColors.backgroundLight,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.cardLight,
               selectedColor: AppColors.primary.withOpacity(0.2),
               checkmarkColor: AppColors.primary,
               labelStyle: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected
+                    ? AppColors.primary
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondaryLight),
               ),
               side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                color: isSelected
+                    ? AppColors.primary
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.borderLight
+                          : AppColors.borderLightTheme),
                 width: 1,
               ),
             ),
@@ -186,7 +196,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
@@ -194,7 +204,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             'You\'re all caught up!',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],
@@ -214,12 +226,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isRead
-              ? AppColors.backgroundLight
+              ? (Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
+                    : AppColors.backgroundLight)
               : AppColors.primary.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isRead
-                ? AppColors.borderLight
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.borderLight
+                      : AppColors.borderLightTheme)
                 : AppColors.primary.withOpacity(0.2),
             width: 1,
           ),
@@ -255,7 +271,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                             fontWeight: isRead
                                 ? FontWeight.w500
                                 : FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -277,7 +293,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                       notification['body'],
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.textSecondary
+                            : AppColors.textSecondaryLight,
                         height: 1.4,
                       ),
                       maxLines: 3,
@@ -312,7 +330,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
                         _formatTime(notification['created_at']),
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ],

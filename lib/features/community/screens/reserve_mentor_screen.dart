@@ -29,7 +29,7 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
     final mentors = _getFilteredMentors();
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Reserve Mentor',
@@ -336,7 +336,9 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cardDark,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark 
+          ? AppColors.cardDark 
+          : AppColors.cardLight,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -475,7 +477,9 @@ class _ReserveMentorScreenState extends ConsumerState<ReserveMentorScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.cardDark,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+          ? AppColors.cardDark 
+          : AppColors.cardLight,
         title: Text(
           'Reserve Mentor Session',
           style: GoogleFonts.poppins(

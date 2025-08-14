@@ -271,7 +271,9 @@ class _EventFormDialogState extends State<EventFormDialog> {
             ),
             prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             filled: true,
-            fillColor: AppColors.cardDark,
+            fillColor: Theme.of(context).brightness == Brightness.dark 
+                ? AppColors.cardDark 
+                : const Color(0xFFF4F4F5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.borderLight),

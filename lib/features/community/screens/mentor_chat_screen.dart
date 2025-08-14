@@ -120,7 +120,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
     final mentor = _getMockMentor(widget.mentorId);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Row(
           children: [
@@ -338,7 +338,9 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
               decoration: InputDecoration(
                 hintText: 'Type your message...',
                 filled: true,
-                fillColor: AppColors.cardDark,
+                fillColor: Theme.of(context).brightness == Brightness.dark 
+                    ? AppColors.cardDark 
+                    : const Color(0xFFF4F4F5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

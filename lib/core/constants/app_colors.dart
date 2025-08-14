@@ -15,51 +15,28 @@ class AppColors {
   static const Color secondaryLight = Color(0xFFF472B6);
 
   // Accent Colors - Simplified to 3 main colors
-  static const Color accent = Color(
-    0xFF36AD35,
-  ); // Green accent (was accentGreen)
+  static const Color accent = Color(0xFF36AD35); // Green accent
 
-  // Background Colors (Figma Design)
-  static const Color backgroundDark = Color(
-    0xFF161616,
-  ); // Exact Figma background
+  // Dark Theme Background Colors
+  static const Color backgroundDark = Color(0xFF161616); // Exact Figma background
   static const Color surfaceDark = Color(0xFF161616); // Same as background
   static const Color cardDark = Color(0xFF161616); // Dark card background
+
+  // Light Theme Background Colors
+  static const Color backgroundLight = Color(0xFFFAFAFA); // Light background
+  static const Color surfaceLight = Color(0xFFFFFFFF); // Light surface
+  static const Color cardLight = Color(0xFFFFFFFF); // Light card background
 
   // Dark Theme Text Colors
   static const Color textPrimary = Color(0xFFFFFFFF); // Pure white text
   static const Color textSecondary = Color(0xFFAAAAAA); // Gray from Figma
   static const Color textTertiary = Color(0xFF666666); // Darker gray
-  static const Color textOnDark = Color(
-    0xFF111827,
-  ); // Dark text on light backgrounds
+  static const Color textOnDark = Color(0xFF111827); // Dark text on light backgrounds
 
   // Light Theme Text Colors
-  static const Color textPrimaryLight = Color(
-    0xFF111827,
-  ); // Dark text for light theme
-  static const Color textSecondaryLight = Color(
-    0xFF6B7280,
-  ); // Gray for light theme
-  static const Color textTertiaryLight = Color(
-    0xFF9CA3AF,
-  ); // Light gray for light theme
-
-  // Light Theme Background Colors (renamed for clarity)
-  static const Color backgroundLight = Color(
-    0xFF2D2D2D,
-  ); // Dark card background for dark theme
-  static const Color surfaceLight = Color(0xFF1E1E1E); // Dark surface
-  static const Color cardLight = Color(0xFF2D2D2D); // Dark card background
-
-  // Actual Light Theme Colors
-  static const Color backgroundLightTheme = Color(
-    0xFFFAFAFA,
-  ); // Light background
-  static const Color surfaceLightTheme = Color(0xFFFFFFFF); // Light surface
-  static const Color cardLightTheme = Color(
-    0xFFFFFFFF,
-  ); // Light card background
+  static const Color textPrimaryLight = Color(0xFF111827); // Dark text for light theme
+  static const Color textSecondaryLight = Color(0xFF6B7280); // Gray for light theme
+  static const Color textTertiaryLight = Color(0xFF9CA3AF); // Light gray for light theme
 
   // Status Colors
   static const Color success = Color(0xFF10B981);
@@ -67,10 +44,15 @@ class AppColors {
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
 
-  // Border Colors
+  // Border Colors (Dark Theme)
   static const Color borderLight = Color(0xFF374151);
   static const Color borderMedium = Color(0xFF4B5563);
   static const Color borderDark = Color(0xFF6B7280);
+
+  // Border Colors (Light Theme)
+  static const Color borderLightTheme = Color(0xFFE5E7EB);
+  static const Color borderMediumTheme = Color(0xFFD1D5DB);
+  static const Color borderDarkTheme = Color(0xFF9CA3AF);
 
   // Gradient Colors
   static const List<Color> primaryGradient = [

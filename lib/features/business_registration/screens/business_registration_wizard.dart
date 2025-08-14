@@ -140,12 +140,15 @@ class _BusinessRegistrationWizardState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, 
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.textPrimary 
+                  : AppColors.textPrimaryLight),
           onPressed: () => context.pop(),
         ),
         title: Text(

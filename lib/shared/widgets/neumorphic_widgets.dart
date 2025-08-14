@@ -258,11 +258,12 @@ class NeumorphicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
+        color: isDark ? AppColors.backgroundDark : AppColors.surfaceLight,
         borderRadius: borderRadius ?? BorderRadius.circular(12),
         boxShadow: isPressed
             ? [
@@ -330,11 +331,12 @@ class NeumorphicInset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.backgroundDark,
+        color: isDark ? AppColors.backgroundDark : AppColors.surfaceLight,
         borderRadius: borderRadius ?? BorderRadius.circular(20),
         boxShadow: [
           // Inner shadow - dark (bottom-right)
@@ -406,24 +408,24 @@ class GlassCard extends StatelessWidget {
                       effectiveTint.withOpacity(0.05),
                     ]
                   : [
-                      effectiveTint.withOpacity(0.4),
-                      effectiveTint.withOpacity(0.2),
+                      effectiveTint.withOpacity(0.12),
+                      effectiveTint.withOpacity(0.06),
                     ],
             ),
             border: Border.all(
-              color: effectiveTint.withOpacity(isDark ? 0.2 : 0.5),
-              width: isDark ? 1.5 : 2.0,
+              color: effectiveTint.withOpacity(isDark ? 0.2 : 0.18),
+              width: isDark ? 1.5 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
                     ? Colors.black.withOpacity(0.3)
-                    : Colors.black.withOpacity(0.1),
+                    : Colors.black.withOpacity(0.06),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
               BoxShadow(
-                color: effectiveTint.withOpacity(isDark ? 0.1 : 0.05),
+                color: effectiveTint.withOpacity(isDark ? 0.1 : 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),

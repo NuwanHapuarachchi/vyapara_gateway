@@ -55,9 +55,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
           'Payments',
@@ -316,7 +316,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   _selectedFilter = filter;
                 });
               },
-              backgroundColor: AppColors.backgroundLight,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.cardDark 
+                  : AppColors.cardLight,
               selectedColor: AppColors.primary.withOpacity(0.2),
               checkmarkColor: AppColors.primary,
               labelStyle: GoogleFonts.inter(

@@ -177,7 +177,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -268,7 +268,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             style: GoogleFonts.inter(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 4),
@@ -277,7 +277,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
         ],
@@ -331,7 +333,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
     final Color tint = _getFilterTint(filter);
     final Color contentColor = isSelected
         ? Colors.white
-        : AppColors.textSecondary;
+        : (Theme.of(context).brightness == Brightness.dark
+              ? AppColors.textSecondary
+              : AppColors.textSecondaryLight);
 
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -430,7 +434,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -462,7 +466,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                       application.description,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.textSecondary
+                            : AppColors.textSecondaryLight,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -510,7 +516,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -534,35 +540,45 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
               Icon(
                 Icons.calendar_today_outlined,
                 size: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondaryLight,
               ),
               const SizedBox(width: 6),
               Text(
                 'Submitted ${_formatDate(application.submittedDate)}',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
                 ),
               ),
               const SizedBox(width: 16),
               Icon(
                 Icons.folder_outlined,
                 size: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondaryLight,
               ),
               const SizedBox(width: 6),
               Text(
                 '${application.documentsCount} docs',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textSecondary
+                      : AppColors.textSecondaryLight,
                 ),
               ),
               const Spacer(),
               Icon(
                 Icons.arrow_forward_ios,
                 size: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondary
+                    : AppColors.textSecondaryLight,
               ),
             ],
           ),

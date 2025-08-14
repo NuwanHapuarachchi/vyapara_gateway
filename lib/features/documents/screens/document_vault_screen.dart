@@ -121,9 +121,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
           'Document Vault',
@@ -225,7 +225,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   _selectedCategory = category;
                 });
               },
-              backgroundColor: AppColors.backgroundLight,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                  ? AppColors.cardDark 
+                  : AppColors.cardLight,
               selectedColor: AppColors.primary.withOpacity(0.2),
               checkmarkColor: AppColors.primary,
               labelStyle: GoogleFonts.inter(
@@ -445,7 +447,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.backgroundLight,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+            ? AppColors.cardDark 
+            : AppColors.cardLight,
         title: Text(
           'Delete Document',
           style: GoogleFonts.inter(

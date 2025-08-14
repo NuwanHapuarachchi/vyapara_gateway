@@ -16,7 +16,7 @@ class ApplicationDetailScreen extends ConsumerWidget {
     final application = _getMockApplicationDetail(applicationId);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           application.title,
