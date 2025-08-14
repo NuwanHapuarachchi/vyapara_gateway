@@ -4,6 +4,7 @@ import 'core/theme/theme.dart';
 import 'core/routing/app_router.dart';
 import 'core/config/supabase_config.dart';
 import 'core/theme/theme_controller.dart';
+import 'shared/widgets/network_status_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +33,15 @@ class VyaparaGatewayApp extends StatelessWidget {
           routerConfig: AppRouter.router,
           builder: (context, child) {
             return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.noScaling,
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.noScaling),
+              child: Column(
+                children: [
+                  const NetworkStatusWidget(),
+                  Expanded(child: child!),
+                ],
               ),
-              child: child!,
             );
           },
         );

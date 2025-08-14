@@ -9,15 +9,29 @@ class SupabaseConfig {
 
   /// Initialize Supabase
   static Future<void> initialize() async {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-      debug: true, // Set to false in production
-    );
+    try {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+        debug: true, // Set to false in production
+      );
+      print('Supabase initialized successfully');
+    } catch (e) {
+      print('Supabase initialization failed: $e');
+      // Don't throw error - allow app to continue in offline mode
+      // The app will show network status and provide fallback functionality
+    }
   }
 
   /// Get Supabase client instance
-  static SupabaseClient get client => Supabase.instance.client;
+  static SupabaseClient get client {
+    try {
+      return Supabase.instance.client;
+    } catch (e) {
+      print('Supabase client not initialized: $e');
+      rethrow;
+    }
+  }
 
   /// Get current user
   static User? get currentUser => client.auth.currentUser;

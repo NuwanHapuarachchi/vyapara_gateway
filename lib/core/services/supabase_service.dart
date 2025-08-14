@@ -1,84 +1,172 @@
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 import '../models/user_model.dart';
 
-/// Service for Supabase operations
+/// Service for Supabase operations with enhanced error handling
 class SupabaseService {
   static SupabaseClient get _client => SupabaseConfig.client;
 
-  /// Test database connection
-  static Future<bool> testConnection() async {
+  /// Check if device has internet connectivity
+  static Future<bool> hasInternetConnection() async {
     try {
-      await _client.from('business_types').select('count');
-      return true;
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (e) {
-      print('Supabase connection test failed: $e');
       return false;
     }
+  }
+
+  /// Retry mechanism for network operations
+  static Future<T> _retryOperation<T>(
+    Future<T> Function() operation, {
+    int maxRetries = 3,
+    Duration delay = const Duration(seconds: 2),
+  }) async {
+    int attempts = 0;
+    while (attempts < maxRetries) {
+      try {
+        return await operation();
+      } catch (e) {
+        attempts++;
+        if (attempts >= maxRetries) rethrow;
+
+        // Check if it's a network-related error
+        if (_isNetworkError(e)) {
+          print('Network error (attempt $attempts/$maxRetries): $e');
+          await Future.delayed(delay * attempts); // Exponential backoff
+        } else {
+          rethrow; // Non-network errors should not be retried
+        }
+      }
+    }
+    throw Exception('Operation failed after $maxRetries attempts');
+  }
+
+  /// Check if error is network-related
+  static bool _isNetworkError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    return errorString.contains('socketexception') ||
+        errorString.contains('failed host lookup') ||
+        errorString.contains('no address associated with hostname') ||
+        errorString.contains('network is unreachable') ||
+        errorString.contains('connection refused') ||
+        errorString.contains('timeout') ||
+        errorString.contains('clientexception');
+  }
+
+  /// Enhanced error handling wrapper
+  static Future<T?> _safeOperation<T>(
+    Future<T> Function() operation, {
+    T? fallback,
+    String? operationName,
+  }) async {
+    try {
+      // Check internet connectivity first
+      if (!await hasInternetConnection()) {
+        print('${operationName ?? 'Operation'} failed: No internet connection');
+        return fallback;
+      }
+
+      return await _retryOperation(operation);
+    } catch (e) {
+      print('${operationName ?? 'Operation'} failed: $e');
+
+      if (_isNetworkError(e)) {
+        print(
+          'Network connectivity issue detected. Using fallback data if available.',
+        );
+      }
+
+      return fallback;
+    }
+  }
+
+  /// Test database connection
+  static Future<bool> testConnection() async {
+    final result = await _safeOperation<bool>(
+      () async {
+        await _client.from('business_types').select('count');
+        return true;
+      },
+      fallback: false,
+      operationName: 'Database connection test',
+    );
+    return result ?? false;
   }
 
   /// =============================
   /// Notifications
   /// =============================
   static Future<List<Map<String, dynamic>>> getNotifications() async {
-    try {
-      final String? userId = SupabaseConfig.userId;
-      if (userId == null) return [];
-      final response = await _client
-          .from('notifications')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-      return List<Map<String, dynamic>>.from(response);
-    } catch (e) {
-      print('Error fetching notifications: $e');
-      // Return sample notifications if table doesn't exist
-      return [
-        {
-          'id': '1',
-          'title': 'Application Status Update',
-          'body': 'Your business registration application is being reviewed.',
-          'read_at': null,
-          'created_at': DateTime.now()
-              .subtract(const Duration(hours: 2))
-              .toIso8601String(),
-        },
-        {
-          'id': '2',
-          'title': 'Document Upload Required',
-          'body':
-              'Please upload your tax certificate to complete your profile.',
-          'read_at': null,
-          'created_at': DateTime.now()
-              .subtract(const Duration(days: 1))
-              .toIso8601String(),
-        },
-        {
-          'id': '3',
-          'title': 'Welcome to Vyapara Gateway',
-          'body': 'Thank you for joining our business management platform.',
-          'read_at': DateTime.now()
-              .subtract(const Duration(days: 2))
-              .toIso8601String(),
-          'created_at': DateTime.now()
-              .subtract(const Duration(days: 3))
-              .toIso8601String(),
-        },
-      ];
-    }
+    final String? userId = SupabaseConfig.userId;
+    if (userId == null) return [];
+
+    // Fallback data for offline mode
+    final fallbackNotifications = [
+      {
+        'id': '1',
+        'title': 'Application Status Update',
+        'body': 'Your business registration application is being reviewed.',
+        'read_at': null,
+        'created_at': DateTime.now()
+            .subtract(const Duration(hours: 2))
+            .toIso8601String(),
+      },
+      {
+        'id': '2',
+        'title': 'Document Upload Required',
+        'body': 'Please upload your tax certificate to complete your profile.',
+        'read_at': null,
+        'created_at': DateTime.now()
+            .subtract(const Duration(days: 1))
+            .toIso8601String(),
+      },
+      {
+        'id': '3',
+        'title': 'Welcome to Vyapara Gateway',
+        'body': 'Thank you for joining our business management platform.',
+        'read_at': DateTime.now()
+            .subtract(const Duration(days: 2))
+            .toIso8601String(),
+        'created_at': DateTime.now()
+            .subtract(const Duration(days: 3))
+            .toIso8601String(),
+      },
+      {
+        'id': '4',
+        'title': 'Network Connection',
+        'body': 'You are currently offline. Some features may be limited.',
+        'read_at': null,
+        'created_at': DateTime.now().toIso8601String(),
+      },
+    ];
+
+    final result = await _safeOperation<List<Map<String, dynamic>>>(
+      () async {
+        final response = await _client
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', ascending: false);
+        return List<Map<String, dynamic>>.from(response);
+      },
+      fallback: fallbackNotifications,
+      operationName: 'Fetch notifications',
+    );
+
+    return result ?? fallbackNotifications;
   }
 
   /// Mark notification as read
   static Future<void> markNotificationRead(String id) async {
-    try {
+    await _safeOperation<void>(() async {
       await _client
           .from('notifications')
           .update({'read_at': DateTime.now().toIso8601String()})
           .eq('id', id);
-    } catch (e) {
-      print('Error marking notification as read: $e');
-    }
+    }, operationName: 'Mark notification as read');
   }
 
   /// =============================

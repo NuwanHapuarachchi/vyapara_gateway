@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/supabase_config.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../core/utils/error_handler.dart';
 
 /// Authentication state notifier using Supabase
 class AuthNotifier extends AsyncNotifier<UserProfile?> {
@@ -28,7 +30,14 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
     try {
       final session = _supabase.auth.currentSession;
       if (session?.user != null) {
-        return await _loadUserProfile();
+        // Check network connectivity before attempting to load profile
+        if (await SupabaseService.hasInternetConnection()) {
+          return await _loadUserProfile();
+        } else {
+          print('No internet connection. Using cached session.');
+          // Return basic user info from session without profile data
+          return null;
+        }
       }
       return null;
     } catch (e) {
@@ -69,6 +78,13 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
     state = const AsyncValue.loading();
 
     try {
+      // Check internet connectivity first
+      if (!await SupabaseService.hasInternetConnection()) {
+        throw Exception(
+          'No internet connection. Please check your network and try again.',
+        );
+      }
+
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -80,9 +96,13 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
         throw Exception('Login failed: No user returned');
       }
     } on AuthException catch (e) {
-      state = AsyncValue.error(e.message, StackTrace.current);
+      state = AsyncValue.error(
+        ErrorHandler.getHumanReadableError(e.message),
+        StackTrace.current,
+      );
     } catch (e) {
-      state = AsyncValue.error('Login failed: $e', StackTrace.current);
+      final errorMessage = ErrorHandler.getHumanReadableError(e.toString());
+      state = AsyncValue.error(errorMessage, StackTrace.current);
     }
   }
 
@@ -194,12 +214,21 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
   /// Send email verification
   Future<void> resendEmailVerification() async {
     try {
+      // Check internet connectivity first
+      if (!await SupabaseService.hasInternetConnection()) {
+        throw Exception(
+          'No internet connection. Please check your network and try again.',
+        );
+      }
+
       await _supabase.auth.resend(
         type: OtpType.signup,
         email: _supabase.auth.currentUser?.email,
       );
     } catch (e) {
-      throw Exception('Failed to send verification email: $e');
+      throw Exception(
+        'Failed to send verification email: ${ErrorHandler.getHumanReadableError(e.toString())}',
+      );
     }
   }
 }

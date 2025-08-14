@@ -13,6 +13,7 @@ import '../../features/community/screens/community_feed_screen.dart';
 import '../../features/community/screens/mentor_chat_screen.dart';
 import '../../features/community/screens/reserve_mentor_screen.dart';
 import '../../features/test/supabase_test_screen.dart';
+import '../../features/test/network_test_screen.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/documents/screens/document_vault_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
@@ -171,11 +172,16 @@ class AppRouter {
         builder: (context, state) => const ReserveMentorScreen(),
       ),
 
-      // Test route (for development)
+      // Test routes (for development)
       GoRoute(
         path: '/test-supabase',
         name: 'test-supabase',
         builder: (context, state) => const SupabaseTestScreen(),
+      ),
+      GoRoute(
+        path: '/test-network',
+        name: 'test-network',
+        builder: (context, state) => const NetworkTestScreen(),
       ),
     ],
 
