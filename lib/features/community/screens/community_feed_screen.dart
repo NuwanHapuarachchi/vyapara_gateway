@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
+import '../models/community_question.dart';
+import '../models/community_answer.dart';
+import '../services/community_service.dart';
+import 'question_detail_screen.dart';
 
 /// Community Feed Screen for Q&A and discussions
 class CommunityFeedScreen extends ConsumerStatefulWidget {
@@ -15,6 +20,18 @@ class CommunityFeedScreen extends ConsumerStatefulWidget {
 
 class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   final TextEditingController _questionController = TextEditingController();
+  final CommunityService _communityService = CommunityService();
+
+  List<CommunityQuestion> _questions = [];
+  bool _isLoading = true;
+  String _searchQuery = '';
+  String _selectedBusinessType = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuestions();
+  }
 
   @override
   void dispose() {
@@ -22,11 +39,74 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     super.dispose();
   }
 
+  Future<void> _loadQuestions() async {
+    try {
+      setState(() => _isLoading = true);
+      final questions = await _communityService.getQuestions();
+      setState(() {
+        _questions = questions;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading questions: $e')));
+      }
+    }
+  }
+
+  Future<void> _searchQuestions(String query) async {
+    if (query.isEmpty) {
+      await _loadQuestions();
+      return;
+    }
+
+    try {
+      setState(() => _isLoading = true);
+      final questions = await _communityService.searchQuestions(query);
+      setState(() {
+        _questions = questions;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error searching questions: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _filterByBusinessType(String businessType) async {
+    if (businessType == 'all') {
+      await _loadQuestions();
+      return;
+    }
+
+    try {
+      setState(() => _isLoading = true);
+      final questions = await _communityService.getQuestionsByBusinessType(
+        businessType,
+      );
+      setState(() {
+        _questions = questions;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error filtering questions: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Mock community posts
-    final posts = _getMockPosts();
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -39,21 +119,32 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: null,
         body: RefreshIndicator(
-          onRefresh: () async {
-            await Future.delayed(const Duration(seconds: 1));
-          },
+          onRefresh: _loadQuestions,
           child: CustomScrollView(
             slivers: [
               _buildSliverAppBar(),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildPostCard(posts[index]),
-                    childCount: posts.length,
+              _buildSearchAndFilterSection(),
+              if (_isLoading)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                )
+              else if (_questions.isEmpty)
+                SliverToBoxAdapter(child: _buildEmptyState())
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildPostCard(_questions[index]),
+                      childCount: _questions.length,
+                    ),
                   ),
                 ),
-              ),
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
           ),
@@ -109,7 +200,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     );
   }
 
-  Widget _buildPostCard(CommunityPost post) {
+  Widget _buildPostCard(CommunityQuestion question) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -124,7 +215,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                   radius: 20,
                   backgroundColor: AppColors.primary,
                   child: Text(
-                    post.userName[0].toUpperCase(),
+                    (question.authorName ?? 'Anonymous')[0].toUpperCase(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -137,7 +228,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post.userName,
+                        question.authorName ?? 'Anonymous User',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -145,7 +236,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                         ),
                       ),
                       Text(
-                        _formatTimeAgo(post.createdAt),
+                        question.formattedCreatedAt,
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: Theme.of(context).brightness == Brightness.dark
@@ -156,14 +247,33 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     ],
                   ),
                 ),
+                if (question.isFeatured)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Featured',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            // Question
+            // Question Title
             Text(
-              post.question,
+              question.title,
               style: GoogleFonts.inter(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -171,10 +281,10 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               ),
             ),
 
-            if (post.description.isNotEmpty) ...[
+            if (question.content.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                post.description,
+                question.displayContent,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Theme.of(context).brightness == Brightness.dark
@@ -186,11 +296,11 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
 
             const SizedBox(height: 12),
 
-            // Hashtags
-            if (post.hashtags.isNotEmpty) ...[
+            // Tags
+            if (question.displayTags.isNotEmpty) ...[
               Wrap(
                 spacing: 8,
-                children: post.hashtags
+                children: question.displayTags
                     .map(
                       (tag) => Chip(
                         label: Text(
@@ -211,46 +321,249 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
               const SizedBox(height: 16),
             ],
 
-            // Actions
+            // Stats and Actions
             Row(
               children: [
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.thumb_up_outlined, size: 18),
-                  label: Text('${post.likes}'),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        question.upvotes > 0
+                            ? Icons.thumb_up
+                            : Icons.thumb_up_outlined,
+                        size: 20,
+                        color: question.upvotes > 0
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                      onPressed: () => _voteQuestion(question.id, true),
+                    ),
+                    Text(
+                      '${question.totalVotes}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton.icon(
-                  onPressed: () {
-                    _showRepliesBottomSheet(post);
-                  },
-                  icon: const Icon(Icons.comment_outlined, size: 18),
-                  label: Text('${post.replies.length} replies'),
+                const SizedBox(width: 16),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.chat_bubble_outline,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () => _navigateToQuestionDetail(question),
+                    ),
+                    Text(
+                      '${question.answerCount}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
-                TextButton(onPressed: () {}, child: const Text('Share')),
-              ],
-            ),
-
-            // Recent Replies
-            if (post.replies.isNotEmpty) ...[
-              const Divider(),
-              ...post.replies.take(2).map((reply) => _buildReplyItem(reply)),
-              if (post.replies.length > 2) ...[
+                if (question.isAnswered)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Answered',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  ),
                 TextButton(
-                  onPressed: () {
-                    _showRepliesBottomSheet(post);
-                  },
-                  child: Text('View all ${post.replies.length} replies'),
+                  onPressed: () => _navigateToQuestionDetail(question),
+                  child: Text(
+                    'View Replies',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ],
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildReplyItem(Reply reply) {
+  Widget _buildSearchAndFilterSection() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Search Bar
+            TextField(
+              onChanged: (value) {
+                setState(() => _searchQuery = value);
+                if (value.isNotEmpty) {
+                  _searchQuestions(value);
+                } else {
+                  _loadQuestions();
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Search questions...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Filter Dropdown
+            Row(
+              children: [
+                Text(
+                  'Filter by business type:',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButton<String>(
+                    value: _selectedBusinessType,
+                    isExpanded: true,
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text('All Types')),
+                      DropdownMenuItem(
+                        value: 'sole_proprietorship',
+                        child: Text('Sole Proprietorship'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'partnership',
+                        child: Text('Partnership'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'private_limited',
+                        child: Text('Private Limited'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'public_limited',
+                        child: Text('Public Limited'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _selectedBusinessType = value!);
+                      _filterByBusinessType(value!);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.groups_outlined,
+            size: 64,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.textSecondary
+                : AppColors.textSecondaryLight,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No questions found',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Be the first to ask a question to the community!',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _showAskQuestionBottomSheet,
+            icon: const Icon(Icons.add),
+            label: const Text('Ask a Question'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _voteQuestion(String questionId, bool isUpvote) async {
+    try {
+      await _communityService.voteQuestion(questionId, isUpvote);
+      // Refresh the questions to show updated vote count
+      await _loadQuestions();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error voting: $e')));
+      }
+    }
+  }
+
+  Future<void> _voteAnswer(String answerId, bool isUpvote) async {
+    try {
+      await _communityService.voteAnswer(answerId, isUpvote);
+      // You could refresh the specific question or just show a success message
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vote recorded!')));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error voting: $e')));
+      }
+    }
+  }
+
+  Widget _buildReplyItem(CommunityAnswer reply) {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
@@ -260,7 +573,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
             radius: 16,
             backgroundColor: AppColors.secondary,
             child: Text(
-              reply.userName[0].toUpperCase(),
+              (reply.authorName ?? 'Anonymous')[0].toUpperCase(),
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -284,7 +597,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                   Row(
                     children: [
                       Text(
-                        reply.userName,
+                        reply.authorName ?? 'Anonymous User',
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -293,7 +606,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _formatTimeAgo(reply.createdAt),
+                        reply.formattedCreatedAt,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: Theme.of(context).brightness == Brightness.dark
@@ -301,6 +614,27 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                               : AppColors.textSecondaryLight,
                         ),
                       ),
+                      if (reply.isAccepted) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Accepted',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.success,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -310,6 +644,37 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                       fontSize: 13,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              reply.upvotes > 0
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_outlined,
+                              size: 16,
+                              color: reply.upvotes > 0
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                            ),
+                            onPressed: () => _voteAnswer(reply.id, true),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${reply.totalVotes}',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -321,75 +686,11 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   }
 
   void _showAskQuestionBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ask a Question',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _questionController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: 'What would you like to ask the community?',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement post question functionality
-                      Navigator.pop(context);
-                      _questionController.clear();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Question posted successfully!'),
-                        ),
-                      );
-                    },
-                    child: const Text('Post'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    final tagsController = TextEditingController();
+    bool isPosting = false;
 
-  void _showRepliesBottomSheet(CommunityPost post) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -397,18 +698,20 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        expand: false,
-        builder: (context, scrollController) => Padding(
-          padding: const EdgeInsets.all(20),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Replies',
+                'Ask a Question',
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -416,14 +719,118 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: post.replies.length,
-                  itemBuilder: (context, index) {
-                    return _buildReplyItem(post.replies[index]);
-                  },
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Question Title *',
+                  hintText: 'What is your question about?',
+                  border: OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: contentController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Question Details',
+                  hintText: 'Provide more details about your question...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: tagsController,
+                decoration: const InputDecoration(
+                  labelText: 'Tags (optional)',
+                  hintText: 'e.g., business, registration, tax',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: isPosting
+                          ? null
+                          : () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isPosting
+                          ? null
+                          : () async {
+                              if (titleController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please enter a question title',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setModalState(() => isPosting = true);
+
+                              try {
+                                final user =
+                                    Supabase.instance.client.auth.currentUser;
+                                if (user == null) {
+                                  throw Exception('User not authenticated');
+                                }
+
+                                final tags = tagsController.text.trim().isEmpty
+                                    ? <String>[]
+                                    : tagsController.text
+                                          .split(',')
+                                          .map((tag) => tag.trim())
+                                          .toList();
+
+                                final questionData = {
+                                  'author_id': user.id,
+                                  'title': titleController.text.trim(),
+                                  'content': contentController.text.trim(),
+                                  'tags': tags,
+                                };
+
+                                await _communityService.createQuestion(
+                                  questionData,
+                                );
+                                Navigator.pop(context);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Question posted successfully!',
+                                    ),
+                                  ),
+                                );
+
+                                // Refresh the questions list
+                                _loadQuestions();
+                              } catch (e) {
+                                setModalState(() => isPosting = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error posting question: $e'),
+                                  ),
+                                );
+                              }
+                            },
+                      child: isPosting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Post'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -432,99 +839,194 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     );
   }
 
-  String _formatTimeAgo(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
+  // Navigate to question detail screen
+  Future<void> _navigateToQuestionDetail(CommunityQuestion question) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuestionDetailScreen(question: question),
+      ),
+    );
 
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
+    // Refresh questions if needed
+    if (result == true) {
+      _loadQuestions();
     }
   }
 
-  List<CommunityPost> _getMockPosts() {
-    return [
-      CommunityPost(
-        id: '1',
-        userName: 'Priya Silva',
-        question: 'How long does business registration usually take?',
-        description:
-            'I submitted my application 2 weeks ago and haven\'t heard back yet. Is this normal?',
-        hashtags: ['business', 'registration', 'timeline'],
-        likes: 12,
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-        replies: [
-          Reply(
-            userName: 'Mentor John',
-            content:
-                'Typically takes 10-15 business days. You should receive an update soon!',
-            createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-          ),
-          Reply(
-            userName: 'Saman Perera',
-            content: 'Mine took exactly 12 days. Don\'t worry, it\'s normal.',
-            createdAt: DateTime.now().subtract(const Duration(minutes: 30)),
-          ),
-        ],
-      ),
-      CommunityPost(
-        id: '2',
-        userName: 'Kasun Fernando',
-        question: 'What documents are required for VAT registration?',
-        description: '',
-        hashtags: ['vat', 'documents', 'tax'],
-        likes: 8,
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        replies: [
-          Reply(
-            userName: 'Tax Expert Maya',
-            content:
-                'You\'ll need business registration certificate, bank statements, and projected income details.',
-            createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+  // Show report dialog
+  void _showReportDialog(String targetId, String targetType) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Report Content'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Why are you reporting this $targetType?'),
+            const SizedBox(height: 16),
+            // Report reasons
+            ...[
+              'spam',
+              'inappropriate',
+              'harassment',
+              'false_information',
+              'other',
+            ].map(
+              (reason) => ListTile(
+                title: Text(reason.replaceAll('_', ' ').toUpperCase()),
+                onTap: () => _reportContent(targetId, targetType, reason),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
         ],
       ),
-    ];
+    );
   }
-}
 
-/// Community post model
-class CommunityPost {
-  final String id;
-  final String userName;
-  final String question;
-  final String description;
-  final List<String> hashtags;
-  final int likes;
-  final DateTime createdAt;
-  final List<Reply> replies;
+  // Report content
+  Future<void> _reportContent(
+    String targetId,
+    String targetType,
+    String reason,
+  ) async {
+    try {
+      Navigator.pop(context); // Close dialog
+      await _communityService.reportContent(
+        targetId: targetId,
+        targetType: targetType,
+        reason: reason,
+      );
 
-  CommunityPost({
-    required this.id,
-    required this.userName,
-    required this.question,
-    required this.description,
-    required this.hashtags,
-    required this.likes,
-    required this.createdAt,
-    required this.replies,
-  });
-}
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Content reported successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error reporting content: $e')));
+      }
+    }
+  }
 
-/// Reply model
-class Reply {
-  final String userName;
-  final String content;
-  final DateTime createdAt;
+  void _showRepliesBottomSheet(CommunityQuestion question) async {
+    try {
+      final questionWithAnswers = await _communityService
+          .getQuestionWithAnswers(question.id);
 
-  Reply({
-    required this.userName,
-    required this.content,
-    required this.createdAt,
-  });
+      if (questionWithAnswers?.answers == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No answers found')));
+        return;
+      }
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.9,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (context, scrollController) => Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Answers (${questionWithAnswers!.answers!.length})',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  questionWithAnswers.title,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.textSecondary
+                        : AppColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: questionWithAnswers.answers!.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 48,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.textSecondary
+                                    : AppColors.textSecondaryLight,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No answers yet',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.textSecondary
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Be the first to answer this question!',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.textSecondary
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: scrollController,
+                          itemCount: questionWithAnswers.answers!.length,
+                          itemBuilder: (context, index) {
+                            return _buildReplyItem(
+                              questionWithAnswers.answers![index],
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading answers: $e')));
+    }
+  }
 }
