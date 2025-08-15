@@ -55,13 +55,13 @@ class ThemedTextField extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             filled: true,
-            fillColor: enabled 
-                ? (Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.cardDark 
-                    : const Color(0xFFF4F4F5))
-                : (Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.cardDark.withOpacity(0.5) 
-                    : const Color(0xFFF4F4F5).withOpacity(0.5)),
+            fillColor: enabled
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.cardDark
+                      : const Color(0xFFF4F4F5))
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.cardDark.withOpacity(0.5)
+                      : const Color(0xFFF4F4F5).withOpacity(0.5)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.borderLight),
@@ -84,7 +84,9 @@ class ThemedTextField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+              borderSide: BorderSide(
+                color: AppColors.borderLight.withOpacity(0.5),
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -147,13 +149,13 @@ class ThemedDropdownField extends StatelessWidget {
           validator: validator,
           decoration: InputDecoration(
             filled: true,
-            fillColor: enabled 
-                ? (Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.cardDark 
-                    : const Color(0xFFF4F4F5))
-                : (Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.cardDark.withOpacity(0.5) 
-                    : const Color(0xFFF4F4F5).withOpacity(0.5)),
+            fillColor: enabled
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.cardDark
+                      : const Color(0xFFF4F4F5))
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.cardDark.withOpacity(0.5)
+                      : const Color(0xFFF4F4F5).withOpacity(0.5)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.borderLight),
@@ -172,17 +174,23 @@ class ThemedDropdownField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderLight.withOpacity(0.5)),
+              borderSide: BorderSide(
+                color: AppColors.borderLight.withOpacity(0.5),
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
             ),
           ),
-          dropdownColor: AppColors.backgroundLight,
+          dropdownColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.cardDark
+              : AppColors.backgroundLight,
           icon: Icon(
             Icons.arrow_drop_down,
-            color: enabled ? AppColors.textSecondary : AppColors.textSecondary.withOpacity(0.5),
+            color: enabled
+                ? AppColors.textSecondary
+                : AppColors.textSecondary.withOpacity(0.5),
           ),
         ),
       ],

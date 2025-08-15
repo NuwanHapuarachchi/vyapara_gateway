@@ -200,7 +200,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.backgroundLight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.backgroundLight,
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
@@ -251,7 +253,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
           color: isRead
               ? (Theme.of(context).brightness == Brightness.dark
                     ? AppColors.cardDark
-                    : AppColors.backgroundLight)
+                    : AppColors.cardLight)
               : AppColors.primary.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

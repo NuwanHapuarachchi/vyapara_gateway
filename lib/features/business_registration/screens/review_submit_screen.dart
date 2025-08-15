@@ -245,7 +245,9 @@ class _ReviewSubmitScreenState extends ConsumerState<ReviewSubmitScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
       ),
@@ -288,7 +290,9 @@ class _ReviewSubmitScreenState extends ConsumerState<ReviewSubmitScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
       ),
@@ -393,7 +397,9 @@ class _ReviewSubmitScreenState extends ConsumerState<ReviewSubmitScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
       ),

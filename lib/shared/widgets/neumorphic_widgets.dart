@@ -558,26 +558,26 @@ class _NeumorphicBottomNavBarState extends State<NeumorphicBottomNavBar>
                               });
                               widget.onTap(2);
                             },
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                                                          child: Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isDark ? AppColors.cardDark : Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.home,
+                                  color: isDark ? AppColors.primary : Colors.blue,
+                                  size: 24,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.home,
-                                color: Colors.blue,
-                                size: 24,
-                              ),
-                            ),
                           ),
                         ),
                       ),

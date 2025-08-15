@@ -228,7 +228,9 @@ class _OwnersPartnersFormScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -359,7 +361,9 @@ class _OwnersPartnersFormScreenState
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: isPrimary
             ? Border.all(color: AppColors.primary, width: 1)
@@ -502,8 +506,8 @@ class _OwnersPartnersFormScreenState
                       color: AppColors.textSecondary,
                     ),
                     filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.cardDark 
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.cardDark
                         : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -595,8 +599,8 @@ class _OwnersPartnersFormScreenState
                 color: AppColors.textSecondary,
               ),
               filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.cardDark 
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
                   : const Color(0xFFF4F4F5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -635,8 +639,8 @@ class _OwnersPartnersFormScreenState
             decoration: InputDecoration(
               labelText: 'Address *',
               filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark 
-                  ? AppColors.cardDark 
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
                   : const Color(0xFFF4F4F5),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -664,8 +668,8 @@ class _OwnersPartnersFormScreenState
                     labelText: 'Phone Number *',
                     hintText: '077-1234567',
                     filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.cardDark 
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.cardDark
                         : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -688,8 +692,8 @@ class _OwnersPartnersFormScreenState
                   decoration: InputDecoration(
                     labelText: 'Email *',
                     filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.cardDark 
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.cardDark
                         : const Color(0xFFF4F4F5),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -724,9 +728,9 @@ class _OwnersPartnersFormScreenState
                       labelText: 'Role',
                       hintText: 'e.g. Managing Partner',
                       filled: true,
-                      fillColor: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.cardDark 
-                        : const Color(0xFFF4F4F5),
+                      fillColor: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.cardDark
+                          : const Color(0xFFF4F4F5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: AppColors.borderLight),
@@ -743,9 +747,9 @@ class _OwnersPartnersFormScreenState
                       labelText: 'Partnership %',
                       hintText: 'e.g. 25.0',
                       filled: true,
-                      fillColor: Theme.of(context).brightness == Brightness.dark 
-                        ? AppColors.cardDark 
-                        : const Color(0xFFF4F4F5),
+                      fillColor: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.cardDark
+                          : const Color(0xFFF4F4F5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: AppColors.borderLight),

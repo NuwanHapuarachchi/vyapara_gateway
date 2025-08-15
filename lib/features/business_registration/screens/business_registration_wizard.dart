@@ -252,11 +252,9 @@ class _BusinessRegistrationWizardState
                         ? AppColors.primary
                         : step.index > _currentStep.index
                         ? (isDark
-                              ? AppColors.backgroundDark.withOpacity(0.5)
-                              : AppColors.backgroundLight.withOpacity(0.5))
-                        : (isDark
-                              ? AppColors.backgroundDark
-                              : AppColors.backgroundLight),
+                              ? AppColors.cardDark.withOpacity(0.5)
+                              : AppColors.cardLight.withOpacity(0.5))
+                        : (isDark ? AppColors.cardDark : AppColors.cardLight),
                     border: isCurrent
                         ? Border.all(color: AppColors.accent, width: 2)
                         : null,
@@ -301,8 +299,8 @@ class _BusinessRegistrationWizardState
             width: double.infinity,
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.backgroundDark
-                  : AppColors.backgroundLight,
+                  ? AppColors.cardDark
+                  : AppColors.cardLight,
               borderRadius: BorderRadius.circular(2),
             ),
             child: FractionallySizedBox(

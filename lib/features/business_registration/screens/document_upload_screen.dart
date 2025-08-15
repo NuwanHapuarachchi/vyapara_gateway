@@ -396,7 +396,9 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isUploaded
@@ -539,7 +541,9 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       margin: const EdgeInsets.symmetric(vertical: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

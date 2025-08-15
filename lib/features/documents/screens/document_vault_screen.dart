@@ -280,7 +280,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.backgroundLight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.backgroundLight,
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
@@ -344,7 +346,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight, width: 1),
       ),
@@ -420,7 +424,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           // Action Menu
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
-            color: AppColors.backgroundLight,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.cardDark
+                : AppColors.backgroundLight,
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'download',
