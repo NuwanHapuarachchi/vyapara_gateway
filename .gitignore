@@ -46,3 +46,4 @@ app.*.map.json
 
 # SQL database files
 *.sql
+CALENDAR_FIX_README.md

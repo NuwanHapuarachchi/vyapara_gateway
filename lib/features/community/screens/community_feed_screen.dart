@@ -26,6 +26,8 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
   String _selectedBusinessType = 'all';
+  Map<String, String?> _userVotes =
+      {}; // Cache user votes {questionId: voteType}
 
   @override
   void initState() {
@@ -43,6 +45,10 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
     try {
       setState(() => _isLoading = true);
       final questions = await _communityService.getQuestions();
+
+      // Load user votes for all questions
+      await _loadUserVotes(questions);
+
       setState(() {
         _questions = questions;
         _isLoading = false;
@@ -55,6 +61,26 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
         ).showSnackBar(SnackBar(content: Text('Error loading questions: $e')));
       }
     }
+  }
+
+  Future<void> _loadUserVotes(List<CommunityQuestion> questions) async {
+    final votes = <String, String?>{};
+
+    for (final question in questions) {
+      try {
+        final vote = await _communityService.getUserVote(
+          question.id,
+          'question',
+        );
+        votes[question.id] = vote;
+      } catch (e) {
+        votes[question.id] = null;
+      }
+    }
+
+    setState(() {
+      _userVotes = votes;
+    });
   }
 
   Future<void> _searchQuestions(String query) async {
@@ -322,24 +348,28 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
             ],
 
             // Stats and Actions
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
+                // Upvote button
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: Icon(
-                        question.upvotes > 0
+                        _userVotes[question.id] == 'upvote'
                             ? Icons.thumb_up
                             : Icons.thumb_up_outlined,
                         size: 20,
-                        color: question.upvotes > 0
+                        color: _userVotes[question.id] == 'upvote'
                             ? AppColors.primary
                             : AppColors.textSecondary,
                       ),
                       onPressed: () => _voteQuestion(question.id, true),
                     ),
                     Text(
-                      '${question.totalVotes}',
+                      '${question.upvotes}',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -347,8 +377,34 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
+                // Downvote button
                 Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _userVotes[question.id] == 'downvote'
+                            ? Icons.thumb_down
+                            : Icons.thumb_down_outlined,
+                        size: 20,
+                        color: _userVotes[question.id] == 'downvote'
+                            ? AppColors.error
+                            : AppColors.textSecondary,
+                      ),
+                      onPressed: () => _voteQuestion(question.id, false),
+                    ),
+                    Text(
+                      '${question.downvotes}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                // Reply count
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: Icon(
@@ -367,7 +423,7 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                     ),
                   ],
                 ),
-                const Spacer(),
+                // Status and action buttons
                 if (question.isAnswered)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -389,6 +445,14 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
                   ),
                 TextButton(
                   onPressed: () => _navigateToQuestionDetail(question),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Text(
                     'View Replies',
                     style: GoogleFonts.inter(
@@ -534,11 +598,32 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
   }
 
   Future<void> _voteQuestion(String questionId, bool isUpvote) async {
+    final voteType = isUpvote ? 'upvote' : 'downvote';
+    final currentVote = _userVotes[questionId];
+
     try {
+      // Update local state immediately for better UX
+      setState(() {
+        if (currentVote == voteType) {
+          // Remove vote if clicking same button
+          _userVotes[questionId] = null;
+        } else {
+          // Set new vote
+          _userVotes[questionId] = voteType;
+        }
+      });
+
+      // Send to server
       await _communityService.voteQuestion(questionId, isUpvote);
-      // Refresh the questions to show updated vote count
+
+      // Refresh questions to get updated counts
       await _loadQuestions();
     } catch (e) {
+      // Revert local state on error
+      setState(() {
+        _userVotes[questionId] = currentVote;
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -841,16 +926,24 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
 
   // Navigate to question detail screen
   Future<void> _navigateToQuestionDetail(CommunityQuestion question) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuestionDetailScreen(question: question),
-      ),
-    );
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QuestionDetailScreen(question: question),
+        ),
+      );
 
-    // Refresh questions if needed
-    if (result == true) {
-      _loadQuestions();
+      // Refresh questions if needed
+      if (result == true) {
+        _loadQuestions();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening question details: $e')),
+        );
+      }
     }
   }
 

@@ -8,9 +8,73 @@ class CommunityService {
   // Getter for current user ID
   String? get currentUserId => _supabase.auth.currentUser?.id;
 
+  // Helper method to convert database JSON to CommunityQuestion
+  CommunityQuestion _questionFromJson(
+    Map<String, dynamic> json,
+    Map<String, dynamic>? userProfile,
+  ) {
+    return CommunityQuestion.fromJson({
+      'id': json['id'],
+      'authorId': json['author_id'],
+      'title': json['title'],
+      'content': json['content'],
+      'businessTypeFilter': json['business_type_filter'],
+      'tags': json['tags'],
+      'upvotes': json['upvotes'] ?? 0,
+      'downvotes': json['downvotes'] ?? 0,
+      'answerCount': json['answer_count'] ?? 0,
+      'isAnswered': json['is_answered'] ?? false,
+      'isFeatured': json['is_featured'] ?? false,
+      'createdAt': json['created_at'],
+      'updatedAt': json['updated_at'],
+      'authorName': userProfile?['full_name'] ?? 'Anonymous User',
+      'authorAvatar': userProfile?['profile_image_url'],
+    });
+  }
+
+  // Helper method to convert database JSON to CommunityAnswer
+  CommunityAnswer _answerFromJson(
+    Map<String, dynamic> json,
+    Map<String, dynamic>? userProfile,
+  ) {
+    return CommunityAnswer.fromJson({
+      'id': json['id'],
+      'questionId': json['question_id'],
+      'authorId': json['author_id'],
+      'content': json['content'],
+      'upvotes': json['upvotes'] ?? 0,
+      'downvotes': json['downvotes'] ?? 0,
+      'isAccepted': json['is_accepted'] ?? false,
+      'createdAt': json['created_at'],
+      'updatedAt': json['updated_at'],
+      'authorName': userProfile?['full_name'] ?? 'Anonymous User',
+      'authorAvatar': userProfile?['profile_image_url'],
+    });
+  }
+
+  // Helper method to fetch answer counts for multiple questions
+  Future<Map<String, int>> _getAnswerCounts(List<String> questionIds) async {
+    if (questionIds.isEmpty) return {};
+
+    final answerCountResponse = await _supabase
+        .from('community_answers')
+        .select('question_id')
+        .inFilter('question_id', questionIds);
+
+    // Count answers per question
+    Map<String, int> answerCounts = {};
+    for (final answer in answerCountResponse) {
+      final questionId = answer['question_id'] as String;
+      answerCounts[questionId] = (answerCounts[questionId] ?? 0) + 1;
+    }
+
+    return answerCounts;
+  }
+
   // Get all community questions with author info and answers
   Future<List<CommunityQuestion>> getQuestions() async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -22,13 +86,21 @@ class CommunityService {
           ''')
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch questions: $e');
@@ -68,21 +140,17 @@ class CommunityService {
 
       final answers = answersResponse.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityAnswer.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        return _answerFromJson(json, userProfile);
       }).toList();
 
       final userProfile =
           questionResponse['user_profiles'] as Map<String, dynamic>?;
-      return CommunityQuestion.fromJson({
-        ...questionResponse,
-        'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-        'authorAvatar': userProfile?['avatar_url'],
-        'answers': answers,
-      });
+      final question = _questionFromJson(questionResponse, userProfile);
+      return question.copyWith(
+        answers: answers,
+        answerCount: answers.length,
+        isAnswered: answers.isNotEmpty,
+      );
     } catch (e) {
       throw Exception('Failed to fetch question: $e');
     }
@@ -99,7 +167,8 @@ class CommunityService {
           .select()
           .single();
 
-      return CommunityQuestion.fromJson(response);
+      // Use the helper method to properly map the response
+      return _questionFromJson(response, null);
     } catch (e) {
       throw Exception('Failed to create question: $e');
     }
@@ -118,7 +187,8 @@ class CommunityService {
           .select()
           .single();
 
-      return CommunityQuestion.fromJson(response);
+      // Use the helper method to properly map the response
+      return _questionFromJson(response, null);
     } catch (e) {
       throw Exception('Failed to update question: $e');
     }
@@ -142,13 +212,11 @@ class CommunityService {
           .select()
           .single();
 
-      // Update the answer count for the question
-      await _supabase
-          .from('community_questions')
-          .update({'answer_count': answerData['answer_count']})
-          .eq('id', answerData['question_id']);
+      // Note: we no longer call an RPC to increment answer_count.
+      // The UI computes counts from fetched answers, and you can add a DB trigger later if desired.
 
-      return CommunityAnswer.fromJson(response);
+      // Use the helper method to properly map the response
+      return _answerFromJson(response, null);
     } catch (e) {
       throw Exception('Failed to add answer: $e');
     }
@@ -167,7 +235,8 @@ class CommunityService {
           .select()
           .single();
 
-      return CommunityAnswer.fromJson(response);
+      // Use the helper method to properly map the response
+      return _answerFromJson(response, null);
     } catch (e) {
       throw Exception('Failed to update answer: $e');
     }
@@ -302,6 +371,7 @@ class CommunityService {
   // Search questions by title or content
   Future<List<CommunityQuestion>> searchQuestions(String query) async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -314,13 +384,21 @@ class CommunityService {
           .or('title.ilike.%$query%,content.ilike.%$query%')
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to search questions: $e');
@@ -330,6 +408,7 @@ class CommunityService {
   // Get questions by tags
   Future<List<CommunityQuestion>> getQuestionsByTags(List<String> tags) async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -342,13 +421,21 @@ class CommunityService {
           .overlaps('tags', tags)
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch questions by tags: $e');
@@ -358,6 +445,7 @@ class CommunityService {
   // Get featured questions
   Future<List<CommunityQuestion>> getFeaturedQuestions() async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -370,13 +458,21 @@ class CommunityService {
           .eq('is_featured', true)
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch featured questions: $e');
@@ -388,6 +484,7 @@ class CommunityService {
     String businessType,
   ) async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -400,13 +497,21 @@ class CommunityService {
           .contains('business_type_filter', [businessType])
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch questions by business type: $e');
@@ -416,6 +521,7 @@ class CommunityService {
   // Get user's questions
   Future<List<CommunityQuestion>> getUserQuestions(String userId) async {
     try {
+      // First, get all questions with user profiles
       final response = await _supabase
           .from('community_questions')
           .select('''
@@ -428,13 +534,21 @@ class CommunityService {
           .eq('author_id', userId)
           .order('created_at', ascending: false);
 
+      // Get all question IDs to fetch answer counts
+      final questionIds = response.map((q) => q['id'] as String).toList();
+
+      // Fetch answer counts for all questions in one query
+      final answerCounts = await _getAnswerCounts(questionIds);
+
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityQuestion.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        final questionId = json['id'] as String;
+        final actualAnswerCount = answerCounts[questionId] ?? 0;
+        final question = _questionFromJson(json, userProfile);
+        return question.copyWith(
+          answerCount: actualAnswerCount,
+          isAnswered: actualAnswerCount > 0,
+        );
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch user questions: $e');
@@ -458,11 +572,7 @@ class CommunityService {
 
       return response.map((json) {
         final userProfile = json['user_profiles'] as Map<String, dynamic>?;
-        return CommunityAnswer.fromJson({
-          ...json,
-          'authorName': userProfile?['full_name'] ?? 'Anonymous User',
-          'authorAvatar': userProfile?['profile_image_url'],
-        });
+        return _answerFromJson(json, userProfile);
       }).toList();
     } catch (e) {
       throw Exception('Failed to fetch user answers: $e');

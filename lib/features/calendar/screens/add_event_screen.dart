@@ -24,13 +24,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _startTime = TimeOfDay.now();
-  TimeOfDay _endTime = TimeOfDay.now().replacing(
-    hour: TimeOfDay.now().hour + 1,
-  );
 
   String _selectedEventType = 'business_appointment';
-  String _selectedVisibility = 'private';
-  String _selectedColor = '#2196F3';
+  String _selectedColor = '#4CAF50'; // Default to business appointment color
 
   int _reminderMinutes = 30;
   bool _sendEmailReminder = true;
@@ -38,6 +34,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
   bool _sendPushReminder = true;
   bool _isOnline = false;
   bool _isLoading = false;
+
+  // Getter to check if reminders are enabled
+  bool get _remindersEnabled => _reminderMinutes > 0;
 
   final List<Map<String, dynamic>> _eventTypes = [
     {
@@ -73,16 +72,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
     {'value': 'custom_event', 'label': 'Custom Event', 'color': '#E91E63'},
   ];
 
-  final List<Map<String, dynamic>> _colors = [
-    {'value': '#2196F3', 'label': 'Blue'},
-    {'value': '#4CAF50', 'label': 'Green'},
-    {'value': '#FF9800', 'label': 'Orange'},
-    {'value': '#9C27B0', 'label': 'Purple'},
-    {'value': '#F44336', 'label': 'Red'},
-    {'value': '#607D8B', 'label': 'Blue Grey'},
-    {'value': '#795548', 'label': 'Brown'},
-    {'value': '#E91E63', 'label': 'Pink'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Set initial color based on default event type
+    _selectedColor = _eventTypes.firstWhere(
+      (t) => t['value'] == _selectedEventType,
+    )['color'];
+  }
 
   @override
   void dispose() {
@@ -140,87 +137,54 @@ class _AddEventScreenState extends State<AddEventScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Event Type Selection
-              Text(
-                'Event Type',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimary
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 12),
+              // Event Type Section
+              _buildSectionHeader('Event Type', Icons.category),
+              const SizedBox(height: 26),
+              _buildEventTypeDropdown(isDark),
+              const SizedBox(height: 8),
+
+              // Privacy notice
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.borderLight
-                        : AppColors.borderLightTheme,
+                    color: Colors.orange.withValues(alpha: 0.3),
                   ),
                 ),
-                child: DropdownButtonFormField<String>(
-                  value: _selectedEventType,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  items: _eventTypes.map((type) {
-                    return DropdownMenuItem<String>(
-                      value: type['value'] as String,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Color(
-                                int.parse(
-                                  (type['color'] as String).replaceAll(
-                                    '#',
-                                    '0xFF',
-                                  ),
-                                ),
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(type['label'] as String),
-                        ],
+                child: Row(
+                  children: [
+                    Icon(Icons.lock, color: Colors.orange, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'All events are private and only visible to you',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.orange[700],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedEventType = value!;
-                      _selectedColor = _eventTypes.firstWhere(
-                        (t) => t['value'] == value,
-                      )['color'];
-                    });
-                  },
+                    ),
+                  ],
                 ),
               ),
-
               const SizedBox(height: 24),
 
+              // Basic Details Section
+              _buildSectionHeader('Event Details', Icons.edit),
+              const SizedBox(height: 22),
+
               // Title
-              TextFormField(
+              _buildTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Event Title *',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: 'Event Title *',
+                icon: Icons.title,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter event title';
@@ -228,24 +192,21 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 16),
 
               // Description
-              TextFormField(
+              _buildTextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: 'Description',
+                icon: Icons.description,
                 maxLines: 3,
               ),
+              const SizedBox(height: 24),
 
+              // Date and Time Section
+              _buildSectionHeader('Date & Time', Icons.schedule),
               const SizedBox(height: 16),
 
-              // Date and Time Selection
               Row(
                 children: [
                   Expanded(child: _buildDatePicker()),
@@ -253,68 +214,22 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   Expanded(child: _buildTimePicker()),
                 ],
               ),
-
-              const SizedBox(height: 16),
-
-              // Location
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: 'Location',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.location_on),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Online Meeting
-              Row(
-                children: [
-                  Checkbox(
-                    value: _isOnline,
-                    onChanged: (value) {
-                      setState(() {
-                        _isOnline = value!;
-                      });
-                    },
-                  ),
-                  const Text('Online Meeting'),
-                ],
-              ),
-
-              if (_isOnline) ...[
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _meetingLinkController,
-                  decoration: InputDecoration(
-                    labelText: 'Meeting Link',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.link),
-                  ),
-                ),
-              ],
-
               const SizedBox(height: 24),
 
-              // Visibility
-              Text(
-                'Visibility',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimary
-                      : AppColors.textPrimaryLight,
-                ),
+              // Location Section
+              _buildSectionHeader('Location', Icons.location_on),
+              const SizedBox(height: 16),
+
+              _buildTextField(
+                controller: _locationController,
+                label: 'Location',
+                icon: Icons.place,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+
+              // Online Meeting Toggle
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.cardDark : AppColors.cardLight,
                   borderRadius: BorderRadius.circular(12),
@@ -324,186 +239,60 @@ class _AddEventScreenState extends State<AddEventScreen> {
                         : AppColors.borderLightTheme,
                   ),
                 ),
-                child: DropdownButtonFormField<String>(
-                  value: _selectedVisibility,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'private', child: Text('Private')),
-                    DropdownMenuItem(
-                      value: 'shared_partners',
-                      child: Text('Shared with Partners'),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _isOnline,
+                      onChanged: (value) {
+                        setState(() {
+                          _isOnline = value!;
+                        });
+                      },
                     ),
-                    DropdownMenuItem(
-                      value: 'shared_providers',
-                      child: Text('Shared with Providers'),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.video_call,
+                      color: _isOnline ? AppColors.primary : Colors.grey,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Online Meeting',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVisibility = value!;
-                    });
-                  },
                 ),
               ),
 
-              const SizedBox(height: 24),
-
-              // Color Selection
-              Text(
-                'Event Color',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimary
-                      : AppColors.textPrimaryLight,
+              if (_isOnline) ...[
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _meetingLinkController,
+                  label: 'Meeting Link',
+                  icon: Icons.link,
                 ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _colors.map((color) {
-                  final isSelected = _selectedColor == color['value'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedColor = color['value'];
-                      });
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Color(
-                          int.parse(color['value'].replaceAll('#', '0xFF')),
-                        ),
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.white, width: 3)
-                            : null,
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: Color(
-                                    int.parse(
-                                      color['value'].replaceAll('#', '0xFF'),
-                                    ),
-                                  ).withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-
+              ],
               const SizedBox(height: 24),
 
-              // Reminders
-              Text(
-                'Reminders',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppColors.textPrimary
-                      : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 12),
+              // Reminders Section
+              _buildSectionHeader('Reminders', Icons.notifications),
+              const SizedBox(height: 16),
 
-              // Reminder time
-              Row(
-                children: [
-                  const Text('Remind me'),
-                  const SizedBox(width: 8),
-                  DropdownButton<int>(
-                    value: _reminderMinutes,
-                    items: [
-                      const DropdownMenuItem(
-                        value: 5,
-                        child: Text('5 minutes'),
-                      ),
-                      const DropdownMenuItem(
-                        value: 15,
-                        child: Text('15 minutes'),
-                      ),
-                      const DropdownMenuItem(
-                        value: 30,
-                        child: Text('30 minutes'),
-                      ),
-                      const DropdownMenuItem(value: 60, child: Text('1 hour')),
-                      const DropdownMenuItem(value: 1440, child: Text('1 day')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _reminderMinutes = value!;
-                      });
-                    },
-                  ),
-                  const Text('before'),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // Reminder types
-              CheckboxListTile(
-                title: const Text('Email'),
-                value: _sendEmailReminder,
-                onChanged: (value) {
-                  setState(() {
-                    _sendEmailReminder = value!;
-                  });
-                },
-              ),
-              CheckboxListTile(
-                title: const Text('SMS'),
-                value: _sendSmsReminder,
-                onChanged: (value) {
-                  setState(() {
-                    _sendSmsReminder = value!;
-                  });
-                },
-              ),
-              CheckboxListTile(
-                title: const Text('Push Notification'),
-                value: _sendPushReminder,
-                onChanged: (value) {
-                  setState(() {
-                    _sendPushReminder = value!;
-                  });
-                },
-              ),
-
+              _buildReminderSettings(),
               const SizedBox(height: 24),
 
-              // Notes
-              TextFormField(
+              // Notes Section
+              _buildSectionHeader('Additional Notes', Icons.note),
+              const SizedBox(height: 16),
+
+              _buildTextField(
                 controller: _notesController,
-                decoration: InputDecoration(
-                  labelText: 'Notes',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                label: 'Notes',
+                icon: Icons.note_add,
                 maxLines: 3,
               ),
-
               const SizedBox(height: 32),
             ],
           ),
@@ -530,17 +319,30 @@ class _AddEventScreenState extends State<AddEventScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.cardDark
+              : AppColors.cardLight,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.borderLight
+                : AppColors.borderLightTheme,
+          ),
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today),
-            const SizedBox(width: 8),
-            Text(
-              '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-              style: GoogleFonts.inter(fontSize: 16),
+            Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
+            Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
           ],
         ),
       ),
@@ -548,77 +350,48 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Widget _buildTimePicker() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: () async {
-            final time = await showTimePicker(
-              context: context,
-              initialTime: _startTime,
-            );
-            if (time != null) {
-              setState(() {
-                _startTime = time;
-                // Auto-adjust end time if it's before start time
-                if (_endTime.hour < _startTime.hour ||
-                    (_endTime.hour == _startTime.hour &&
-                        _endTime.minute <= _startTime.minute)) {
-                  _endTime = _startTime.replacing(hour: _startTime.hour + 1);
-                }
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.access_time),
-                const SizedBox(width: 8),
-                Text(
-                  _startTime.format(context),
-                  style: GoogleFonts.inter(fontSize: 16),
-                ),
-              ],
-            ),
+    return InkWell(
+      onTap: () async {
+        final time = await showTimePicker(
+          context: context,
+          initialTime: _startTime,
+        );
+        if (time != null) {
+          setState(() {
+            _startTime = time;
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.cardDark
+              : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.borderLight
+                : AppColors.borderLightTheme,
           ),
         ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () async {
-            final time = await showTimePicker(
-              context: context,
-              initialTime: _endTime,
-            );
-            if (time != null) {
-              setState(() {
-                _endTime = time;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.access_time),
-                const SizedBox(width: 8),
-                Text(
-                  _endTime.format(context),
-                  style: GoogleFonts.inter(fontSize: 16),
+        child: Row(
+          children: [
+            Icon(Icons.access_time, color: AppColors.primary, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Time: ${_startTime.format(context)}',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
+              ),
             ),
-          ),
+            Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -633,31 +406,37 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
       final eventData = {
         'creator_id': user.id,
-        'title': _titleController.text,
-        'description': _descriptionController.text.isEmpty
+        'title': _titleController.text.trim(),
+        'description': _descriptionController.text.trim().isEmpty
             ? null
-            : _descriptionController.text,
+            : _descriptionController.text.trim(),
         'event_type': _selectedEventType,
-        'visibility': _selectedVisibility,
+        'status': 'scheduled', // Add missing status field
+        'visibility': 'private', // Always private
         'start_date': _selectedDate.toIso8601String().split('T')[0],
         'start_time':
             '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
         'end_date': _selectedDate.toIso8601String().split('T')[0],
-        'end_time':
-            '${_endTime.hour.toString().padLeft(2, '0')}:${_endTime.minute.toString().padLeft(2, '0')}',
-        'location': _locationController.text.isEmpty
+        'end_time': _addOneHour(
+          '${_startTime.hour.toString().padLeft(2, '0')}:${_startTime.minute.toString().padLeft(2, '0')}',
+        ),
+        'location': _locationController.text.trim().isEmpty
             ? null
-            : _locationController.text,
-        'meeting_link': _meetingLinkController.text.isEmpty
+            : _locationController.text.trim(),
+        'meeting_link': _meetingLinkController.text.trim().isEmpty
             ? null
-            : _meetingLinkController.text,
+            : _meetingLinkController.text.trim(),
         'is_online': _isOnline,
-        'reminder_minutes': _reminderMinutes,
-        'send_email_reminder': _sendEmailReminder,
-        'send_sms_reminder': _sendSmsReminder,
-        'send_push_reminder': _sendPushReminder,
+        'reminder_minutes': _reminderMinutes > 0 ? _reminderMinutes : null,
+        'send_email_reminder': _reminderMinutes > 0
+            ? _sendEmailReminder
+            : false,
+        'send_sms_reminder': _reminderMinutes > 0 ? _sendSmsReminder : false,
+        'send_push_reminder': _reminderMinutes > 0 ? _sendPushReminder : false,
         'color': _selectedColor,
-        'notes': _notesController.text.isEmpty ? null : _notesController.text,
+        'notes': _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
       };
 
       await _calendarService.createEvent(eventData);
@@ -670,14 +449,334 @@ class _AddEventScreenState extends State<AddEventScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error creating event: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating event: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  // Helper method to add one hour to time string
+  String _addOneHour(String time) {
+    final parts = time.split(':');
+    int hour = int.parse(parts[0]);
+    final minute = parts[1];
+
+    hour = (hour + 1) % 24;
+    return '${hour.toString().padLeft(2, '0')}:$minute';
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.textPrimary
+                : AppColors.textPrimaryLight,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        filled: true,
+        fillColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.cardDark
+            : AppColors.cardLight,
+      ),
+      maxLines: maxLines,
+      validator: validator,
+    );
+  }
+
+  Widget _buildEventTypeDropdown(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.grey[900]
+            : Colors.white, // Use white for light theme
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+        ),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedEventType,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          isDense: false,
+        ),
+        icon: Icon(
+          Icons.keyboard_arrow_down,
+          color: AppColors.primary,
+          size: 24,
+        ),
+        dropdownColor: isDark
+            ? Colors.grey[900]
+            : Colors.white, // Match container color
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: isDark
+              ? Colors.white
+              : Colors.black87, // Theme-aware text color
+        ),
+        selectedItemBuilder: (BuildContext context) {
+          return _eventTypes.map<Widget>((type) {
+            return Container(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  // Color indicator for selected item
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Color(
+                        int.parse(
+                          (type['color'] as String).replaceAll('#', '0xFF'),
+                        ),
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Selected text with proper color
+                  Text(
+                    type['label'] as String,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        },
+        items: _eventTypes.map((type) {
+          return DropdownMenuItem<String>(
+            value: type['value'] as String,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Color indicator with better sizing
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Color(
+                        int.parse(
+                          (type['color'] as String).replaceAll('#', '0xFF'),
+                        ),
+                      ),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Event type label with better text handling
+                  Expanded(
+                    child: Text(
+                      type['label'] as String,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? Colors.white
+                            : Colors.black87, // Theme-aware text color
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedEventType = value!;
+            _selectedColor = _eventTypes.firstWhere(
+              (t) => t['value'] == value,
+            )['color'];
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildReminderSettings() {
+    return Column(
+      children: [
+        // Reminder time
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.cardDark
+                : AppColors.cardLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.borderLight
+                  : AppColors.borderLightTheme,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.timer, color: AppColors.primary),
+              const SizedBox(width: 12),
+              const Text('Remind me'),
+              const SizedBox(width: 12),
+              DropdownButton<int?>(
+                value: _reminderMinutes == 0 ? null : _reminderMinutes,
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('Off')),
+                  const DropdownMenuItem(value: 5, child: Text('5 minutes')),
+                  const DropdownMenuItem(value: 15, child: Text('15 minutes')),
+                  const DropdownMenuItem(value: 30, child: Text('30 minutes')),
+                  const DropdownMenuItem(value: 60, child: Text('1 hour')),
+                  const DropdownMenuItem(value: 1440, child: Text('1 day')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _reminderMinutes = value ?? 0;
+                  });
+                },
+              ),
+              const Text('before'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Reminder types
+        if (_remindersEnabled) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.cardDark
+                  : AppColors.cardLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.borderLight
+                    : AppColors.borderLightTheme,
+              ),
+            ),
+            child: Column(
+              children: [
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(Icons.email, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      const Text('Email'),
+                    ],
+                  ),
+                  value: _sendEmailReminder,
+                  onChanged: (value) {
+                    setState(() {
+                      _sendEmailReminder = value!;
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(Icons.sms, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      const Text('SMS'),
+                    ],
+                  ),
+                  value: _sendSmsReminder,
+                  onChanged: (value) {
+                    setState(() {
+                      _sendSmsReminder = value!;
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Row(
+                    children: [
+                      Icon(Icons.notifications, color: AppColors.primary),
+                      const SizedBox(width: 12),
+                      const Text('Push Notification'),
+                    ],
+                  ),
+                  value: _sendPushReminder,
+                  onChanged: (value) {
+                    setState(() {
+                      _sendPushReminder = value!;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

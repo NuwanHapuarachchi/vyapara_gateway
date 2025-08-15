@@ -5,28 +5,44 @@ part 'calendar_event.g.dart';
 @JsonSerializable()
 class CalendarEvent {
   final String id;
+  @JsonKey(name: 'creator_id')
   final String creatorId;
+  @JsonKey(name: 'business_id')
   final String? businessId;
+  @JsonKey(name: 'application_id')
   final String? applicationId;
   final String title;
   final String? description;
+  @JsonKey(name: 'event_type')
   final String eventType;
   final String status;
   final String visibility;
+  @JsonKey(name: 'start_date')
   final DateTime startDate;
+  @JsonKey(name: 'start_time')
   final String startTime;
+  @JsonKey(name: 'end_date')
   final DateTime endDate;
+  @JsonKey(name: 'end_time')
   final String endTime;
   final String? location;
+  @JsonKey(name: 'meeting_link')
   final String? meetingLink;
+  @JsonKey(name: 'is_online')
   final bool isOnline;
-  final int reminderMinutes;
+  @JsonKey(name: 'reminder_minutes')
+  final int? reminderMinutes; // Changed to nullable
+  @JsonKey(name: 'send_email_reminder')
   final bool sendEmailReminder;
+  @JsonKey(name: 'send_sms_reminder')
   final bool sendSmsReminder;
+  @JsonKey(name: 'send_push_reminder')
   final bool sendPushReminder;
   final String color;
   final String? notes;
+  @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  @JsonKey(name: 'updated_at')
   final DateTime updatedAt;
 
   CalendarEvent({
@@ -46,7 +62,7 @@ class CalendarEvent {
     this.location,
     this.meetingLink,
     required this.isOnline,
-    required this.reminderMinutes,
+    this.reminderMinutes, // Changed to nullable
     required this.sendEmailReminder,
     required this.sendSmsReminder,
     required this.sendPushReminder,
@@ -99,7 +115,7 @@ class CalendarEvent {
     final minute = time[1];
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '${displayHour.toString().padLeft(2, '0')}:$minute $period';
+    return '$displayHour:$minute $period';
   }
 
   String get formattedEndTime {
@@ -108,25 +124,22 @@ class CalendarEvent {
     final minute = time[1];
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '${displayHour.toString().padLeft(2, '0')}:$minute $period';
+    return '$displayHour:$minute $period';
   }
 
   String get formattedDate {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${startDate.day} ${months[startDate.month - 1]} ${startDate.year}';
+    return '${startDate.day}/${startDate.month}/${startDate.year}';
+  }
+
+  // Helper methods for reminders
+  bool get hasReminders => reminderMinutes != null && reminderMinutes! > 0;
+
+  String get reminderText {
+    if (!hasReminders) return 'No reminders';
+    if (reminderMinutes! < 60) return '${reminderMinutes} minutes before';
+    if (reminderMinutes! < 1440)
+      return '${(reminderMinutes! / 60).round()} hours before';
+    return '${(reminderMinutes! / 1440).round()} days before';
   }
 
   String get eventTypeDisplay {

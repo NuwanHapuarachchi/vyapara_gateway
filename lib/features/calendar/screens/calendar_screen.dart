@@ -41,13 +41,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       // Group events by date
       final groupedEvents = <DateTime, List<CalendarEvent>>{};
       for (final event in events) {
-        final date = DateTime(
-          event.startDate.year,
-          event.startDate.month,
-          event.startDate.day,
-        );
-        if (groupedEvents[date] == null) groupedEvents[date] = [];
-        groupedEvents[date]!.add(event);
+        try {
+          final date = DateTime(
+            event.startDate.year,
+            event.startDate.month,
+            event.startDate.day,
+          );
+          if (groupedEvents[date] == null) groupedEvents[date] = [];
+          groupedEvents[date]!.add(event);
+        } catch (e) {
+          print('Error processing event: $e');
+          continue;
+        }
       }
 
       setState(() {
@@ -56,10 +61,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
       });
       _onDaySelected(_selectedDay, _selectedDay);
     } catch (e) {
+      print('Error loading events: $e');
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error loading events: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading events: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
