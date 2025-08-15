@@ -1,6 +1,12 @@
-export default function StatsCard({ title, value, change, trend, icon, color }) {
+import Link from 'next/link'
+
+export default function StatsCard({ title, value, change, trend, icon, color, href }) {
+  // If you pass an href, we render a <Link>; otherwise keep it as a <div>
+  const CardTag = href ? Link : 'div'
+  const cardProps = href ? { href, prefetch: false } : {}
+
   return (
-    <div className={`stats-card ${color}`}>
+    <CardTag {...cardProps} className={`stats-card ${color} ${href ? 'clickable' : ''}`} aria-label={href ? `Go to ${title}` : undefined}>
       <div className="stats-content">
         <div className="stats-header">
           <h3>{title}</h3>
@@ -16,6 +22,6 @@ export default function StatsCard({ title, value, change, trend, icon, color }) 
           </div>
         </div>
       </div>
-    </div>
+    </CardTag>
   )
 }

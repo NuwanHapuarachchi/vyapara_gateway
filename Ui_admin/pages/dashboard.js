@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { supabase } from '../lib/supabaseClient'
 
 import Layout from '../components/Layout'
 import StatsCard from '../components/StatsCard'
@@ -13,6 +12,7 @@ import RecentActivity from '../components/RecentActivity'
 export default function Dashboard() {
   const router = useRouter()
   const [ready, setReady] = useState(false)
+  const [activityReloadKey, setActivityReloadKey] = useState(0)
 
   useEffect(() => {
     const authed = typeof window !== 'undefined' && localStorage.getItem('auth') === 'true'
@@ -28,12 +28,17 @@ export default function Dashboard() {
     )
   }
 
-  const statsData = [
-    { title: 'Pending Applications', value: '24', change: '+12%', trend: 'up', icon: 'fa-solid fa-clock', color: 'orange' },
-    { title: 'Approved Today', value: '18', change: '+8%', trend: 'up', icon: 'fa-solid fa-circle-check', color: 'green' },
-    { title: 'In Review', value: '31', change: '-5%', trend: 'down', icon: 'fa-solid fa-eye', color: 'blue' },
-    { title: 'Total Users', value: '1,247', change: '+23%', trend: 'up', icon: 'fa-solid fa-users', color: 'purple' }
+ const statsData = [
+    { title: 'Pending Applications', value: '24', change: '+12%', trend: 'up', icon: 'fa-solid fa-clock',  color: 'orange', href: '/applications?status=pending' },
+    { title: 'Approved Today',       value: '18', change: '+8%',  trend: 'up', icon: 'fa-solid fa-circle-check', color: 'green',  href: '/applications?status=approved&dateRange=today' },
+    { title: 'In Review',            value: '31', change: '-5%',  trend: 'down',icon: 'fa-solid fa-eye',   color: 'blue',   href: '/applications?status=in-review' },
+    // If you already have /users/all, link to it. If not, you can make a stub page (see note below).
+    { title: 'Total Users',          value: '1,247', change: '+23%', trend: 'up', icon: 'fa-solid fa-users', color: 'purple', href: '/users/all' }
   ]
+
+  const handleNewApplication = () => router.push('/applications/new')
+  const handleOpenPipeline = () => router.push('/applications')
+  const handleRefreshActivity = () => setActivityReloadKey(k => k + 1)
 
   return (
     <Layout>
@@ -44,7 +49,7 @@ export default function Dashboard() {
             <p>Welcome back! Here's what's happening with your applications.</p>
           </div>
           <div className="header-actions">
-            <button className="btn btn-primary">
+            <button className="btn btn-primary" onClick={handleNewApplication}>
               <i className="fa-solid fa-plus"></i>
               New Application
             </button>
@@ -62,7 +67,7 @@ export default function Dashboard() {
           <div className="dashboard-card pipeline-card">
             <div className="card-header">
               <h3>Verification Pipeline</h3>
-              <button className="btn btn-ghost btn-sm">
+              <button className="btn btn-ghost btn-sm" onClick={handleOpenPipeline}>
                 <i className="fa-solid fa-expand"></i>
               </button>
             </div>
@@ -84,11 +89,12 @@ export default function Dashboard() {
           <div className="dashboard-card activity-card">
             <div className="card-header">
               <h3>Recent Activity</h3>
-              <button className="btn btn-ghost btn-sm">
+              <button className="btn btn-ghost btn-sm" onClick={handleRefreshActivity}>
                 <i className="fa-solid fa-rotate"></i>
               </button>
             </div>
-            <RecentActivity />
+            {/* pass a changing key so the component can refetch or rerender */}
+            <RecentActivity key={activityReloadKey} />
           </div>
 
           {/* SLA Alerts */}
