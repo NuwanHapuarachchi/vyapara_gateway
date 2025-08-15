@@ -19,6 +19,9 @@ import '../../features/documents/screens/document_vault_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/payments/screens/payment_screen.dart';
 import '../../features/business_registration/screens/business_registration_wizard.dart';
+import '../../features/banking/screens/bank_selection_screen.dart';
+import '../../features/tax/screens/tax_registration_screens.dart';
+import '../../features/licensing/screens/municipal_license_screens.dart';
 
 /// Application routing configuration using GoRouter
 class AppRouter {
@@ -153,6 +156,99 @@ class AppRouter {
                   state,
                   const BusinessRegistrationWizard(),
                 ),
+          ),
+          // Banking flow
+          GoRoute(
+            path: '/banking/select',
+            name: 'banking-select',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const BankSelectionScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/banking/prepare',
+            name: 'banking-prepare',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const BankPreparationScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/banking/final',
+            name: 'banking-final',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const BankFinalStepsScreen(),
+            ),
+          ),
+          // Tax flow
+          GoRoute(
+            path: '/tax/brief',
+            name: 'tax-brief',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const TaxBriefingScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/tax/form',
+            name: 'tax-form',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const TaxRegistrationFormScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/tax/review',
+            name: 'tax-review',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const TaxSubmitScreen(),
+            ),
+          ),
+          // Municipal License flow
+          GoRoute(
+            path: '/license/location',
+            name: 'license-location',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const LocationConfirmScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/license/requirements',
+            name: 'license-requirements',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const RequirementsChecklistScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/license/form',
+            name: 'license-form',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const TradeLicenseFormScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/license/payment',
+            name: 'license-payment',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const LicensePaymentScreen(),
+            ),
           ),
         ],
       ),

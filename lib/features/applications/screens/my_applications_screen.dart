@@ -771,59 +771,85 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
     IconData icon,
     Color color,
   ) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: NeumorphicCard(
-        padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           Navigator.pop(context);
-          if (title == 'Company Registration') {
+          if (title == 'Register your private limited company') {
             context.go('/business-registration');
+            return;
           }
-          // TODO: Navigate to other specific application forms
+          if (title == 'Open business bank account') {
+            context.go('/banking/select');
+            return;
+          }
+          if (title == 'Register for VAT and tax identification') {
+            context.go('/tax/brief');
+            return;
+          }
+          if (title == 'Obtain municipal operating license') {
+            context.go('/license/location');
+            return;
+          }
         },
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
               ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.onSurface,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors.textSecondary
-                          : AppColors.textSecondaryLight,
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondary
+                            : AppColors.textSecondaryLight,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
-          ],
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: isDark
+                    ? AppColors.borderDark
+                    : AppColors.borderDarkTheme,
+              ),
+            ],
+          ),
         ),
       ),
     );

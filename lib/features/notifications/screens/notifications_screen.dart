@@ -24,11 +24,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen>
     _future = SupabaseService.getNotifications();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void _refreshNotifications() {
     setState(() {
       _future = SupabaseService.getNotifications();
