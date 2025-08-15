@@ -1,45 +1,64 @@
-import { useState } from 'react'
+// pages/index.js
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Login() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  })
+  const [formData, setFormData] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  // If already signed in, go straight to dashboard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        localStorage.setItem('auth', 'true') // keep your existing gate for now
+        router.replace('/dashboard')
+      }
+    }
+    checkSession()
+  }, [router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
-    // Simulate login
-    setTimeout(() => {
-      if (formData.username === 'admin' && formData.password === 'admin') {
+
+    try {
+      const { data, error: authErr } = await supabase.auth.signInWithPassword({
+        // Treat "username" as email
+        email: formData.username.trim(),
+        password: formData.password,
+      })
+
+      if (authErr) {
+        setError(authErr.message || 'Login failed')
+      } else if (data?.user) {
+        // keep your existing dashboard guard (localStorage)
         localStorage.setItem('auth', 'true')
-        router.replace('/dashboard') 
+        router.replace('/dashboard')
       } else {
         setError('Invalid credentials')
       }
+    } catch (err) {
+      setError('Something went wrong. Please try again.')
+      console.error(err)
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   return (
     <div className="login-container">
       {/* Background Pattern */}
       <div className="login-bg-pattern"></div>
-      
+
       {/* Header */}
       <nav className="login-nav">
         <div className="nav-container">
@@ -80,16 +99,16 @@ export default function Login() {
             )}
 
             <div className="form-group">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="username">Email</label>
               <div className="input-wrapper">
                 <i className="fas fa-user"></i>
                 <input
-                  type="text"
+                  type="email"
                   id="username"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  placeholder="Enter your username"
+                  placeholder="you@example.com"
                   required
                 />
               </div>
@@ -126,6 +145,7 @@ export default function Login() {
             </button>
 
             <div className="login-footer">
+              {/* implement password reset later using supabase.auth.resetPasswordForEmail */}
               <a href="#forgot">Forgot your password?</a>
             </div>
           </form>
@@ -135,7 +155,9 @@ export default function Login() {
         <div className="login-image">
           <div className="image-content">
             <h2>Streamline Business Verification</h2>
-            <p>Efficiently manage applications, verify documents, and approve registrations with our comprehensive admin platform.</p>
+            <p>
+              Efficiently manage applications, verify documents, and approve registrations with our comprehensive admin platform.
+            </p>
             <div className="feature-list">
               <div className="feature-item">
                 <i className="fas fa-check-circle"></i>

@@ -1,8 +1,10 @@
+// pages/applications.js
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '../components/Layout'
 import ApplicationsTable from '../components/ApplicationsTable'
 import FilterPanel from '../components/FilterPanel'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Applications() {
   const router = useRouter()
@@ -16,52 +18,67 @@ export default function Applications() {
   })
 
   useEffect(() => {
-    const auth = localStorage.getItem('auth')
-    if (!auth) {
-      router.push('/')
+    const authed = typeof window !== 'undefined' && localStorage.getItem('auth') === 'true'
+    if (!authed) {
+      router.replace('/')
       return
     }
-    
-    // Mock data
-    setApplications([
-      {
-        id: 'APP-2024-001',
-        applicantName: 'John Silva',
-        businessName: 'Silva Traders',
-        businessType: 'Sole Proprietorship',
-        status: 'Pending',
-        submittedDate: '2024-08-10',
-        assignee: 'Sarah Johnson',
-        aging: 5
-      },
-      {
-        id: 'APP-2024-002',
-        applicantName: 'Mary Fernando',
-        businessName: 'Fernando & Co',
-        businessType: 'Partnership',
-        status: 'In Review',
-        submittedDate: '2024-08-12',
-        assignee: 'Mike Chen',
-        aging: 3
-      },
-      {
-        id: 'APP-2024-003',
-        applicantName: 'David Perera',
-        businessName: 'Tech Innovations LLC',
-        businessType: 'LLC',
-        status: 'Approved',
-        submittedDate: '2024-08-08',
-        assignee: 'Sarah Johnson',
-        aging: 7
-      }
-    ])
-    setLoading(false)
+    fetchData()
   }, [router])
+
+  const fetchData = async () => {
+    setLoading(true)
+
+    // Base query
+    let query = supabase
+      .from('vw_applications_list')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+      .limit(100)
+
+    // Simple filter examples
+    if (filters.status !== 'all') {
+      query = query.eq('status', filters.status)
+    }
+    if (filters.type !== 'all') {
+      query = query.eq('business_type', filters.type)
+    }
+    if (filters.search) {
+      // crude search on id/name; for more advanced search make a tsvector column
+      query = query.ilike('business_name', `%${filters.search}%`)
+    }
+
+    const { data, error } = await query
+    if (error) {
+      console.error(error)
+      setApplications([])
+    } else {
+      // Map view rows to your table’s expected shape
+      const rows = (data || []).map(r => ({
+        id: r.id,
+        applicantName: r.applicant_name,
+        businessName: r.business_name,
+        businessType: r.business_type,
+        status: r.status,
+        submittedDate: r.submitted_at,
+        assignee: r.assignee_name || 'Unassigned',
+        aging: r.aging_days ?? 0,
+      }))
+      setApplications(rows)
+    }
+    setLoading(false)
+  }
+
+  // re-fetch when filters change (basic)
+  useEffect(() => {
+    if (localStorage.getItem('auth') === 'true') fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters])
 
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="spinner"></div>
+        <div className="spinner" />
       </div>
     )
   }
