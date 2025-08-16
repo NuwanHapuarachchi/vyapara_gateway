@@ -446,41 +446,13 @@ class SupabaseService {
       final response = await _client
           .from('payments')
           .select('*')
-          .eq('payer_id', userId)
+          .eq('user_id', userId)
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       print('Error fetching payments: $e');
-      // Return sample payments if table doesn't exist
-      return [
-        {
-          'id': '1',
-          'title': 'Business Registration Fee',
-          'amount_cents': 925000,
-          'status': 'completed',
-          'created_at': DateTime.now()
-              .subtract(const Duration(days: 5))
-              .toIso8601String(),
-        },
-        {
-          'id': '2',
-          'title': 'Annual License Renewal',
-          'amount_cents': 150000,
-          'status': 'pending',
-          'created_at': DateTime.now()
-              .subtract(const Duration(days: 2))
-              .toIso8601String(),
-        },
-        {
-          'id': '3',
-          'title': 'Tax Filing Service',
-          'amount_cents': 75000,
-          'status': 'completed',
-          'created_at': DateTime.now()
-              .subtract(const Duration(days: 10))
-              .toIso8601String(),
-        },
-      ];
+      // Do not show dummy values; surface no data on failure
+      return [];
     }
   }
 
@@ -695,64 +667,245 @@ class SupabaseService {
   }
 
   /// =============================
-  /// Mentors & Reservations
+  /// Service Providers (Mentors & Lawyers)
   /// =============================
-  static Future<List<Map<String, dynamic>>> getMentors() async {
+  static Future<List<Map<String, dynamic>>> getProviders({
+    required UserRole providerType,
+    bool onlyVerified = true,
+  }) async {
     try {
-      final response = await _client.from('mentors').select('*').order('name');
+      dynamic query = _client
+          .from('service_providers')
+          .select(
+            'id, user_id, provider_type, specialization, experience_years, qualification, license_number, hourly_rate, bio, rating, total_reviews, is_verified, is_available, user:user_profiles(full_name, profile_image_url)',
+          )
+          .eq('provider_type', providerType.value);
+
+      if (onlyVerified) {
+        query = query.eq('is_verified', true);
+      }
+
+      final response = await query.order('rating', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching mentors: $e');
+      print('Error fetching providers: $e');
       return [];
     }
   }
 
-  static Future<bool> reserveMentor({required String mentorId}) async {
+  /// Public listing by role from user_profiles (fallback when provider table is empty)
+  static Future<List<Map<String, dynamic>>> getUsersByRole(
+    UserRole role,
+  ) async {
     try {
-      await _client.from('mentor_reservations').insert({
-        'user_id': SupabaseConfig.userId,
-        'mentor_id': mentorId,
-        'status': 'reserved',
-        'reserved_at': DateTime.now().toIso8601String(),
+      final response = await _client
+          .from('user_profiles')
+          .select('id, full_name, profile_image_url, role')
+          .eq('role', role.value)
+          .order('full_name');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching users by role: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> applyAsProvider({
+    required UserRole providerType,
+    List<String>? specialization,
+    int? experienceYears,
+    String? qualification,
+    String? licenseNumber,
+    double? hourlyRate,
+    String? bio,
+    Map<String, dynamic>? verificationDocuments,
+  }) async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) return false;
+
+      await _client.from('service_providers').insert({
+        'user_id': userId,
+        'provider_type': providerType.value,
+        'specialization': specialization ?? [],
+        'experience_years': experienceYears,
+        'qualification': qualification,
+        'license_number': licenseNumber,
+        'hourly_rate': hourlyRate,
+        'bio': bio,
+        'verification_documents': verificationDocuments,
+        'is_verified': false,
+        'is_available': false,
       });
       return true;
     } catch (e) {
-      print('Error reserving mentor: $e');
+      print('Error applying as provider: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> verifyProvider({
+    required String providerId,
+    required bool isVerified,
+    bool updateUserRole = true,
+  }) async {
+    try {
+      // Update provider verification status
+      final provider = await _client
+          .from('service_providers')
+          .update({
+            'is_verified': isVerified,
+            'is_available': isVerified,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', providerId)
+          .select('user_id, provider_type')
+          .single();
+
+      if (updateUserRole && isVerified) {
+        final String targetRole = provider['provider_type'] as String;
+        final String targetUserId = provider['user_id'] as String;
+        await _client
+            .from('user_profiles')
+            .update({
+              'role': targetRole,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('id', targetUserId);
+      }
+      return true;
+    } catch (e) {
+      print('Error verifying provider: $e');
+      return false;
+    }
+  }
+
+  /// Availability Slots
+  static Future<List<Map<String, dynamic>>> getAvailabilitySlots(
+    String providerId,
+  ) async {
+    try {
+      final response = await _client
+          .from('availability_slots')
+          .select('*')
+          .eq('provider_id', providerId)
+          .order('day_of_week');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching availability slots: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> upsertAvailabilitySlots({
+    required String providerId,
+    required List<Map<String, dynamic>> slots,
+  }) async {
+    try {
+      // Upsert by replacing existing slots for simplicity
+      await _client
+          .from('availability_slots')
+          .delete()
+          .eq('provider_id', providerId);
+      if (slots.isNotEmpty) {
+        final data = slots
+            .map(
+              (s) => {
+                'provider_id': providerId,
+                'day_of_week': s['day_of_week'],
+                'start_time': s['start_time'],
+                'end_time': s['end_time'],
+                'is_available': s['is_available'] ?? true,
+              },
+            )
+            .toList();
+        await _client.from('availability_slots').insert(data);
+      }
+      return true;
+    } catch (e) {
+      print('Error upserting availability slots: $e');
       return false;
     }
   }
 
   /// =============================
-  /// Mentor Chat Messages (simple fetch/insert)
+  /// Direct Chat (user <-> provider) using chat_sessions/chat_messages
   /// =============================
-  static Future<List<Map<String, dynamic>>> getMessages({
-    required String mentorId,
+  static Future<Map<String, dynamic>?> getOrCreateDirectChatSession(
+    String otherUserId, {
+    String? sessionTitle,
   }) async {
     try {
-      final response = await _client
-          .from('mentor_messages')
+      final String? currentUserId = SupabaseConfig.userId;
+      if (currentUserId == null) return null;
+
+      // Find existing session between the two users (either direction)
+      final existing = await _client
+          .from('chat_sessions')
           .select('*')
-          .or('user_id.eq.${SupabaseConfig.userId},mentor_id.eq.$mentorId')
+          .or(
+            'and(user_id.eq.$currentUserId,participant_id.eq.$otherUserId),and(user_id.eq.$otherUserId,participant_id.eq.$currentUserId)',
+          )
+          .maybeSingle();
+
+      if (existing != null) return existing;
+
+      final created = await _client
+          .from('chat_sessions')
+          .insert({
+            'user_id': currentUserId,
+            'participant_id': otherUserId,
+            'session_title': sessionTitle,
+            'last_message_at': DateTime.now().toIso8601String(),
+          })
+          .select()
+          .single();
+      return created;
+    } catch (e) {
+      print('Error getting/creating chat session: $e');
+      return null;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getSessionMessages(
+    String sessionId,
+  ) async {
+    try {
+      final response = await _client
+          .from('chat_messages')
+          .select('*')
+          .eq('session_id', sessionId)
           .order('created_at');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching messages: $e');
+      print('Error fetching session messages: $e');
       return [];
     }
   }
 
-  static Future<void> sendMessage({
-    required String mentorId,
-    required String text,
+  static Future<bool> sendSessionMessage({
+    required String sessionId,
+    required String content,
   }) async {
     try {
-      await _client.from('mentor_messages').insert({
-        'user_id': SupabaseConfig.userId,
-        'mentor_id': mentorId,
-        'text': text,
+      final String? currentUserId = SupabaseConfig.userId;
+      if (currentUserId == null) return false;
+
+      await _client.from('chat_messages').insert({
+        'session_id': sessionId,
+        'message_type': 'user',
+        'content': content,
+        'metadata': {'sender_id': currentUserId},
       });
+
+      await _client
+          .from('chat_sessions')
+          .update({'last_message_at': DateTime.now().toIso8601String()})
+          .eq('id', sessionId);
+      return true;
     } catch (e) {
-      print('Error sending message: $e');
+      print('Error sending session message: $e');
+      return false;
     }
   }
 

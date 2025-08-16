@@ -96,8 +96,9 @@ class _FluidGlassNavigationBarState extends State<FluidGlassNavigationBar>
     if (index != widget.currentIndex) {
       HapticFeedback.lightImpact();
       _rippleController.forward(from: 0);
-      widget.onTap(index);
     }
+    // Always forward tap to parent so it can route (even when already selected)
+    widget.onTap(index);
   }
 
   @override
@@ -356,8 +357,9 @@ class _BubbleNavigationBarState extends State<BubbleNavigationBar>
       _scaleController.forward().then((_) {
         _scaleController.reverse();
       });
-      widget.onTap(index);
     }
+    // Always notify parent to handle routing to dashboard
+    widget.onTap(index);
   }
 
   @override

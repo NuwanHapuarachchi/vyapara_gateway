@@ -58,6 +58,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           break;
         case 2:
           _isOnMainDashboard = true;
+          // Always route to dashboard even if already selected
           AppNavigation.toDashboard(context);
           break;
         case 3:
@@ -966,6 +967,91 @@ class DashboardHomeView extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Settings',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFA9A9A9),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Third Row - Mentors & Lawyers
+        Row(
+          children: [
+            // Mentors
+            Expanded(
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                tint: AppColors.primary,
+                onTap: () => AppNavigation.toMentors(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.school_outlined,
+                        color: Color(0xFF1D4ED8),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Mentors',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFA9A9A9),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // Lawyers
+            Expanded(
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                tint: AppColors.primary,
+                onTap: () => AppNavigation.toLawyers(context),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFFBEB),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.gavel_outlined,
+                        color: Color(0xFF92400E),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Lawyers',
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w500,

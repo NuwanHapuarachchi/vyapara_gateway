@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/supabase_service.dart';
+import '../../../core/models/user_model.dart';
+import '../../../core/routing/app_router.dart';
 
 /// Mentor Chat Screen for one-on-one mentorship
 class MentorChatScreen extends ConsumerStatefulWidget {
@@ -17,6 +20,9 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  String? _sessionId;
+  UserRole? _otherRole;
+  String? _otherName;
 
   @override
   void initState() {
@@ -24,29 +30,48 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
     _loadChatHistory();
   }
 
-  void _loadChatHistory() {
-    // Mock chat history
+  Future<void> _loadChatHistory() async {
+    // Fetch other participant profile first so header/back work even if session fails
+    final profile = await SupabaseService.getUserProfile(widget.mentorId);
+    if (profile != null) {
+      if (mounted) {
+        setState(() {
+          _otherRole = profile.role;
+          _otherName = profile.fullName;
+        });
+      }
+    }
+
+    final session = await SupabaseService.getOrCreateDirectChatSession(
+      widget.mentorId,
+      sessionTitle: 'Mentorship Chat',
+    );
+    if (!mounted) return;
+    if (session == null) {
+      // Session not available (e.g., schema not updated). Keep header populated and return gracefully.
+      return;
+    }
+    setState(() => _sessionId = session['id'] as String);
+
+    final rows = await SupabaseService.getSessionMessages(_sessionId!);
+    if (!mounted) return;
     setState(() {
-      _messages.addAll([
-        ChatMessage(
-          text:
-              'Hello! I\'m excited to help you with your business journey. What specific area would you like guidance on?',
-          isFromMentor: true,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-        ),
-        ChatMessage(
-          text:
-              'Hi! I need help understanding the business registration process. This is my first time starting a business.',
-          isFromMentor: false,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
-        ),
-        ChatMessage(
-          text:
-              'That\'s great! Starting a business is an exciting journey. Let me walk you through the key steps for business registration in Sri Lanka.',
-          isFromMentor: true,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        ),
-      ]);
+      _messages
+        ..clear()
+        ..addAll(
+          rows.map((m) {
+            final metadata = m['metadata'] as Map<String, dynamic>?;
+            final isFromMentor =
+                (metadata?['sender_id'] ?? '') == widget.mentorId;
+            return ChatMessage(
+              text: (m['content'] as String?) ?? '',
+              isFromMentor: isFromMentor,
+              timestamp:
+                  DateTime.tryParse((m['created_at'] as String?) ?? '') ??
+                  DateTime.now(),
+            );
+          }),
+        );
     });
     _scrollToBottom();
   }
@@ -58,7 +83,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
@@ -70,37 +95,15 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
 
     _messageController.clear();
     _scrollToBottom();
-
-    // Simulate mentor response
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            ChatMessage(
-              text: _getMentorResponse(text),
-              isFromMentor: true,
-              timestamp: DateTime.now(),
-            ),
-          );
-        });
-        _scrollToBottom();
-      }
-    });
-  }
-
-  String _getMentorResponse(String userMessage) {
-    final message = userMessage.toLowerCase();
-
-    if (message.contains('registration') || message.contains('register')) {
-      return 'For business registration, you\'ll need to decide on your business structure first. Are you planning to register as a sole proprietorship, partnership, or private limited company?';
-    } else if (message.contains('document') || message.contains('papers')) {
-      return 'The main documents you\'ll need are:\n\n• Copy of NIC\n• Proof of business address\n• Business name reservation certificate\n• Bank account details\n\nI can help you prepare these step by step.';
-    } else if (message.contains('cost') || message.contains('fee')) {
-      return 'Registration fees vary by business type:\n\n• Sole Proprietorship: LKR 1,000\n• Partnership: LKR 5,000\n• Private Limited: LKR 15,000\n\nThere may be additional government stamp duties.';
-    } else {
-      return 'That\'s a good question! Let me provide you with detailed guidance on that. Would you like me to break it down into actionable steps for you?';
+    if (_sessionId != null) {
+      await SupabaseService.sendSessionMessage(
+        sessionId: _sessionId!,
+        content: text,
+      );
     }
   }
+
+  // Removed mock responder; real messages are persisted via Supabase
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -116,103 +119,120 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Mock mentor data
-    final mentor = _getMockMentor(widget.mentorId);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                mentor.name[0],
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          _navigateBack();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _navigateBack,
+          ),
+          title: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary,
+                child: Text(
+                  (_otherName != null && _otherName!.isNotEmpty)
+                      ? _otherName![0]
+                      : '?',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    mentor.name,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _otherName ?? 'Chat',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppColors.textPrimary
+                            : AppColors.textPrimaryLight,
+                      ),
                     ),
-                  ),
-                  Text(
-                    mentor.expertise,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
+                    if (_otherRole != null)
+                      Text(
+                        _otherRole == UserRole.lawyer ? 'Lawyer' : 'Mentor',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.success,
+                        ),
+                      ),
+                  ],
+                ),
               ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.videocam_outlined),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Video call feature coming soon!'),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.phone_outlined),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Voice call feature coming soon!'),
+                  ),
+                );
+              },
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.videocam_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Video call feature coming soon!'),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.phone_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Voice call feature coming soon!'),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Mentor Session Info
-          _buildSessionInfo(),
+        body: Column(
+          children: [
+            // Mentor Session Info
+            _buildSessionInfo(),
 
-          // Messages
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return _buildMessageBubble(_messages[index]);
-              },
+            // Messages
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return _buildMessageBubble(_messages[index]);
+                },
+              ),
             ),
-          ),
 
-          // Message Input
-          _buildMessageInput(),
-        ],
+            // Message Input
+            _buildMessageInput(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSessionInfo() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -223,7 +243,9 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
             'Session time remaining: 45 minutes',
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
           ),
           const Spacer(),
@@ -243,6 +265,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -268,7 +291,7 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: message.isFromMentor
-                    ? AppColors.cardDark
+                    ? (isDark ? AppColors.cardDark : const Color(0xFFF5F5F5))
                     : AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -279,7 +302,11 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
                     message.text,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: AppColors.textPrimary,
+                      color: message.isFromMentor
+                          ? (isDark
+                                ? AppColors.textPrimary
+                                : AppColors.textPrimaryLight)
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -288,7 +315,9 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       color: message.isFromMentor
-                          ? AppColors.textTertiary
+                          ? (isDark
+                                ? AppColors.textTertiary
+                                : AppColors.textTertiaryLight)
                           : AppColors.textPrimary.withOpacity(0.7),
                     ),
                   ),
@@ -314,16 +343,26 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceDark,
-        border: Border(top: BorderSide(color: AppColors.borderLight)),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.borderLight : AppColors.borderLightTheme,
+          ),
+        ),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.attach_file, color: AppColors.textSecondary),
+            icon: Icon(
+              Icons.attach_file,
+              color: isDark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
+            ),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('File attachment coming soon!')),
@@ -338,8 +377,8 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
               decoration: InputDecoration(
                 hintText: 'Type your message...',
                 filled: true,
-                fillColor: Theme.of(context).brightness == Brightness.dark 
-                    ? AppColors.cardDark 
+                fillColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.cardDark
                     : const Color(0xFFF4F4F5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -376,15 +415,12 @@ class _MentorChatScreenState extends ConsumerState<MentorChatScreen> {
     return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
   }
 
-  MentorData _getMockMentor(String id) {
-    return MentorData(
-      id: id,
-      name: 'Dr. Rajesh Kumar',
-      expertise: 'Business Strategy & Legal',
-      rating: 4.9,
-      experience: '15+ years',
-      isAvailable: true,
-    );
+  void _navigateBack() {
+    if (_otherRole == UserRole.lawyer) {
+      AppNavigation.toLawyers(context);
+    } else {
+      AppNavigation.toMentors(context);
+    }
   }
 }
 
@@ -398,24 +434,5 @@ class ChatMessage {
     required this.text,
     required this.isFromMentor,
     required this.timestamp,
-  });
-}
-
-/// Mentor data model
-class MentorData {
-  final String id;
-  final String name;
-  final String expertise;
-  final double rating;
-  final String experience;
-  final bool isAvailable;
-
-  MentorData({
-    required this.id,
-    required this.name,
-    required this.expertise,
-    required this.rating,
-    required this.experience,
-    required this.isAvailable,
   });
 }

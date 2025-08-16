@@ -13,6 +13,9 @@ import '../../features/applications/screens/application_detail_screen.dart';
 import '../../features/community/screens/community_feed_screen.dart';
 import '../../features/community/screens/mentor_chat_screen.dart';
 import '../../features/community/screens/reserve_mentor_screen.dart';
+import '../../features/community/screens/providers_list_screen.dart';
+import '../../features/community/screens/provider_apply_screen.dart';
+import '../../features/community/screens/provider_verification_screen.dart';
 import '../../features/test/supabase_test_screen.dart';
 import '../../features/test/network_test_screen.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
@@ -261,10 +264,47 @@ class AppRouter {
               const LicensePaymentScreen(),
             ),
           ),
+          // Provider discovery & application routes
+          GoRoute(
+            path: '/mentors',
+            name: 'mentors',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const ProvidersListScreen(providerKind: 'mentor'),
+            ),
+          ),
+          GoRoute(
+            path: '/lawyers',
+            name: 'lawyers',
+            pageBuilder: (context, state) => PageTransitions.slideTransition(
+              context,
+              state,
+              const ProvidersListScreen(providerKind: 'lawyer'),
+            ),
+          ),
+          GoRoute(
+            path: '/apply-provider',
+            name: 'apply-provider',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const ProviderApplyScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/verify-providers',
+            name: 'verify-providers',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const ProviderVerificationScreen(),
+            ),
+          ),
         ],
       ),
 
-      // Mentor Routes
+      // Mentor Routes (outside shell for full-screen experience)
       GoRoute(
         path: '/mentor-chat/:mentorId',
         name: 'mentor-chat',
@@ -407,6 +447,22 @@ class AppNavigation {
   /// Navigate to reserve mentor
   static void toReserveMentor(BuildContext context) {
     context.go('/reserve-mentor');
+  }
+
+  static void toMentors(BuildContext context) {
+    context.go('/mentors');
+  }
+
+  static void toLawyers(BuildContext context) {
+    context.go('/lawyers');
+  }
+
+  static void toApplyProvider(BuildContext context) {
+    context.go('/apply-provider');
+  }
+
+  static void toVerifyProviders(BuildContext context) {
+    context.go('/verify-providers');
   }
 
   /// Go back if possible

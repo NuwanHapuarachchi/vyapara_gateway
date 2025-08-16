@@ -123,97 +123,125 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Widget _buildPaymentSummaryCard() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'Payment Overview',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snapshot) {
+        final data = snapshot.data ?? [];
+        final totalPaid = data
+            .where(
+              (p) =>
+                  (p['status'] ?? 'pending').toString().toLowerCase() ==
+                  'completed',
+            )
+            .fold<int>(0, (sum, p) => sum + (p['amount_cents'] as int? ?? 0));
+        final pending = data
+            .where(
+              (p) =>
+                  (p['status'] ?? 'pending').toString().toLowerCase() ==
+                  'pending',
+            )
+            .fold<int>(0, (sum, p) => sum + (p['amount_cents'] as int? ?? 0));
+
+        return Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary,
+                AppColors.primary.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-
-          const SizedBox(height: 20),
-
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Paid',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Payment Overview',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'LKR 2,150,000.00',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pending',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Paid',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatAmount(totalPaid),
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'LKR 925,000.00',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                  ),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pending',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatAmount(pending),
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -233,20 +261,43 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           ),
           const SizedBox(height: 12),
 
-          SizedBox(
-            height: 140,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _quickPayments.length,
-              itemBuilder: (context, index) {
-                final payment = _quickPayments[index];
-                return Container(
-                  width: 230,
-                  margin: const EdgeInsets.only(right: 12),
-                  child: _buildQuickPaymentCard(payment),
-                );
-              },
-            ),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _future,
+            builder: (context, snapshot) {
+              final pending = (snapshot.data ?? [])
+                  .where(
+                    (p) =>
+                        (p['status'] ?? 'pending').toString().toLowerCase() ==
+                        'pending',
+                  )
+                  .toList();
+              if (pending.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              return SizedBox(
+                height: 140,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pending.length,
+                  itemBuilder: (context, index) {
+                    final p = pending[index];
+                    final card = {
+                      'title': p['title'] ?? 'Payment',
+                      'amount': p['amount_cents'] ?? 0,
+                      'description':
+                          'Created on ' + _formatDate(p['created_at']),
+                      'icon': Icons.payment,
+                      'color': Colors.orange,
+                    };
+                    return Container(
+                      width: 230,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: _buildQuickPaymentCard(card),
+                    );
+                  },
+                ),
+              );
+            },
           ),
 
           const SizedBox(height: 16),
