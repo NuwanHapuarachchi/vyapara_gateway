@@ -22,59 +22,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          // Navigate back to dashboard instead of exiting
-          context.go('/dashboard');
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: null,
-        body: user == null
-            ? const Center(child: CircularProgressIndicator())
-            : CustomScrollView(
-                slivers: [
-                  _buildSliverAppBar(),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          // Profile Section
-                          _buildProfileSection(user),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: null,
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : CustomScrollView(
+              slivers: [
+                _buildSliverAppBar(),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        // Profile Section
+                        _buildProfileSection(user),
 
-                          const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                          // Account Settings
-                          _buildAccountSettings(user),
+                        // Account Settings
+                        _buildAccountSettings(user),
 
-                          const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                          // App Settings
-                          _buildAppSettings(user),
+                        // App Settings
+                        _buildAppSettings(user),
 
-                          const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                          // NIC Upload Status Banner
-                          if (user.nicDocumentUrl != null &&
-                              !user.isNicVerified)
-                            _buildNicUploadStatusBanner(user),
+                        // NIC Upload Status Banner
+                        if (user.nicDocumentUrl != null && !user.isNicVerified)
+                          _buildNicUploadStatusBanner(user),
 
-                          const SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
-                          // Logout Button
-                          _buildLogoutButton(),
-                          const SizedBox(height: 80),
-                        ],
-                      ),
+                        // Logout Button
+                        _buildLogoutButton(),
+                        const SizedBox(height: 80),
+                      ],
                     ),
                   ),
-                ],
-              ),
-      ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -295,7 +285,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
             onTap: () {
-              context.go('/dashboard/nic-upload');
+              context.go('/nic-upload');
             },
           ),
           ListTile(
@@ -446,7 +436,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildNicUploadStatusBanner(UserProfile user) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),

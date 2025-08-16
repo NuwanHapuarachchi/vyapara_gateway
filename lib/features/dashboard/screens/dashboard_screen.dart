@@ -21,6 +21,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DateTime? _lastBackPressed;
+  bool _isOnMainDashboard = true; // Track if we're on the main dashboard screen
 
   @override
   Widget build(BuildContext context) {
@@ -48,18 +49,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     void onTap(int index) {
       switch (index) {
         case 0:
+          _isOnMainDashboard = false;
           AppNavigation.toApplications(context); // Fixed: Applications first
           break;
         case 1:
+          _isOnMainDashboard = false;
           AppNavigation.toNotifications(context);
           break;
         case 2:
+          _isOnMainDashboard = true;
           AppNavigation.toDashboard(context);
           break;
         case 3:
+          _isOnMainDashboard = false;
           AppNavigation.toCommunity(context);
           break;
         case 4:
+          _isOnMainDashboard = false;
           AppNavigation.toSettings(context); // Fixed: Settings last
           break;
       }
@@ -80,13 +86,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   /// Handle back button press with double tap to exit functionality
   void _handleBackButton(BuildContext context) {
-    final currentLocation = GoRouterState.of(context).fullPath;
+    final location = GoRouterState.of(context).fullPath ?? '';
+    print('DEBUG: location: ' + location);
+    print('DEBUG: _isOnMainDashboard: $_isOnMainDashboard'); // Debug logging
 
-    // If not on dashboard home, navigate to dashboard
-    if (currentLocation != '/dashboard') {
+    // If not on dashboard route, navigate to dashboard first
+    if (location != '/dashboard') {
+      print(
+        'DEBUG: Not on main dashboard, navigating to /dashboard',
+      ); // Debug logging
+      setState(() {
+        _isOnMainDashboard = true;
+      });
       context.go('/dashboard');
       return;
     }
+
+    print(
+      'DEBUG: On main dashboard, implementing double tap to exit',
+    ); // Debug logging
 
     // If on dashboard home, implement double tap to exit
     final now = DateTime.now();
@@ -97,13 +115,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'Press back again to exit',
-            style: TextStyle(color: Colors.white),
+          content: Row(
+            children: [
+              const Icon(Icons.exit_to_app, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              const Text(
+                'Press back again to exit app',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.all(16),
           duration: const Duration(seconds: 2),
         ),
@@ -116,15 +145,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   /// Get current index based on route
   int _getCurrentIndex(BuildContext context) {
-    final location = GoRouterState.of(context).fullPath;
-    if (location?.startsWith('/applications') == true) {
+    final location = GoRouterState.of(context).fullPath ?? '';
+    if (location.startsWith('/applications')) {
+      _isOnMainDashboard = false;
       return 0; // Fixed: Applications first
     }
-    if (location?.startsWith('/notifications') == true) return 1;
-    if (location?.startsWith('/community') == true) return 3;
-    if (location?.startsWith('/settings') == true) {
+    if (location.startsWith('/notifications')) {
+      _isOnMainDashboard = false;
+      return 1;
+    }
+    if (location.startsWith('/calendar')) {
+      _isOnMainDashboard = false;
+      // Keep Home highlighted while in calendar, but treat as not on main
+      return 2;
+    }
+    if (location.startsWith('/community')) {
+      _isOnMainDashboard = false;
+      return 3;
+    }
+    if (location.startsWith('/settings')) {
+      _isOnMainDashboard = false;
       return 4; // Fixed: Settings last
     }
+    _isOnMainDashboard = true;
     return 2; // Default to dashboard/home
   }
 

@@ -133,13 +133,10 @@ class _CommunityFeedScreenState extends ConsumerState<CommunityFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          // Navigate back to dashboard instead of exiting
-          context.go('/dashboard');
-        }
+    return WillPopScope(
+      onWillPop: () async {
+        context.go('/dashboard');
+        return false;
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,

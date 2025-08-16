@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../core/config/supabase_config.dart';
@@ -39,6 +40,16 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     'Certificates': Icons.verified,
     'Other': Icons.folder,
   };
+
+  // Theme helpers for dynamic light/dark colors
+  Color get _onSurfaceColor => Theme.of(context).colorScheme.onSurface;
+  Color get _textSecondaryColor =>
+      Theme.of(context).brightness == Brightness.dark
+      ? AppColors.textSecondary
+      : AppColors.textSecondaryLight;
+  Color get _borderColor => Theme.of(context).brightness == Brightness.dark
+      ? AppColors.borderLight
+      : AppColors.borderLightTheme;
 
   @override
   void initState() {
@@ -120,17 +131,23 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: null,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildSliverAppBar(),
-            SliverToBoxAdapter(child: _buildCategoriesFilter()),
-            _buildDocumentsSliver(),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        context.go('/dashboard');
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: null,
+        body: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(),
+              SliverToBoxAdapter(child: _buildCategoriesFilter()),
+              _buildDocumentsSliver(),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          ),
         ),
       ),
     );
@@ -258,10 +275,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
               labelStyle: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? AppColors.primary : _textSecondaryColor,
               ),
               side: BorderSide(
-                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                color: isSelected ? AppColors.primary : _borderColor,
                 width: 1,
               ),
             ),
@@ -299,16 +316,13 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: _onSurfaceColor,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Tap the + button to upload your first document',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: _textSecondaryColor),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -350,7 +364,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             ? AppColors.cardDark
             : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight, width: 1),
+        border: Border.all(color: _borderColor, width: 1),
       ),
       child: Row(
         children: [
@@ -381,7 +395,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: _onSurfaceColor,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -412,7 +426,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                       _getFileExtension(name).toUpperCase(),
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: _textSecondaryColor,
                       ),
                     ),
                   ],
@@ -423,7 +437,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
           // Action Menu
           PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+            icon: Icon(Icons.more_vert, color: _textSecondaryColor),
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.cardDark
                 : AppColors.backgroundLight,
@@ -432,16 +446,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 value: 'download',
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.download,
-                      color: AppColors.textPrimary,
-                      size: 20,
-                    ),
+                    Icon(Icons.download, color: _onSurfaceColor, size: 20),
                     const SizedBox(width: 12),
-                    Text(
-                      'Download',
-                      style: TextStyle(color: AppColors.textPrimary),
-                    ),
+                    Text('Download', style: TextStyle(color: _onSurfaceColor)),
                   ],
                 ),
               ),
@@ -485,20 +492,17 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           'Delete Document',
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: _onSurfaceColor,
           ),
         ),
         content: Text(
           'Are you sure you want to delete "${file.name ?? 'this document'}"? This action cannot be undone.',
-          style: GoogleFonts.inter(color: AppColors.textSecondary),
+          style: GoogleFonts.inter(color: _textSecondaryColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: Text('Cancel', style: TextStyle(color: _textSecondaryColor)),
           ),
           TextButton(
             onPressed: () async {
@@ -560,7 +564,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
       case 'Certificates':
         return Colors.purple;
       default:
-        return AppColors.textSecondary;
+        return Theme.of(context).brightness == Brightness.dark
+            ? AppColors.textSecondary
+            : AppColors.textSecondaryLight;
     }
   }
 }

@@ -11,9 +11,56 @@ class SupabaseService {
   /// Check if device has internet connectivity
   static Future<bool> hasInternetConnection() async {
     try {
-      final result = await InternetAddress.lookup('google.com');
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      // Try multiple methods for better reliability in release builds
+
+      // Method 1: Try DNS lookup
+      try {
+        final result = await InternetAddress.lookup(
+          'google.com',
+        ).timeout(const Duration(seconds: 5));
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          return true;
+        }
+      } catch (e) {
+        print('DNS lookup failed: $e');
+      }
+
+      // Method 2: Try HTTP request to a reliable endpoint
+      try {
+        final httpClient = HttpClient();
+        httpClient.connectionTimeout = const Duration(seconds: 5);
+        final request = await httpClient.getUrl(
+          Uri.parse('https://www.google.com'),
+        );
+        final response = await request.close().timeout(
+          const Duration(seconds: 5),
+        );
+        httpClient.close();
+        return response.statusCode == 200;
+      } catch (e) {
+        print('HTTP connectivity check failed: $e');
+      }
+
+      // Method 3: Try connecting to Supabase directly
+      try {
+        final httpClient = HttpClient();
+        httpClient.connectionTimeout = const Duration(seconds: 5);
+        final request = await httpClient.getUrl(
+          Uri.parse('https://iqihgblzxtwjguyvohny.supabase.co/rest/v1/'),
+        );
+        final response = await request.close().timeout(
+          const Duration(seconds: 5),
+        );
+        httpClient.close();
+        return response.statusCode == 200 ||
+            response.statusCode == 401; // 401 is expected without auth
+      } catch (e) {
+        print('Supabase connectivity check failed: $e');
+      }
+
+      return false;
     } catch (e) {
+      print('General connectivity check failed: $e');
       return false;
     }
   }

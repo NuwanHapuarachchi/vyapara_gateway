@@ -13,7 +13,14 @@ class SupabaseConfig {
       await Supabase.initialize(
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
-        debug: true, // Set to false in production
+        debug: false, // Set to false for production
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+        realtimeClientOptions: const RealtimeClientOptions(
+          logLevel: RealtimeLogLevel.info,
+        ),
+        storageOptions: const StorageClientOptions(retryAttempts: 3),
       );
       print('Supabase initialized successfully');
     } catch (e) {

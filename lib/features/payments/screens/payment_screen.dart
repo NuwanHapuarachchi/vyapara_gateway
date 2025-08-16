@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/supabase_service.dart';
@@ -54,21 +55,27 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: null,
-      body: RefreshIndicator(
-        onRefresh: () async => _refreshPayments(),
-        child: CustomScrollView(
-          slivers: [
-            _buildSliverAppBar(),
-            SliverToBoxAdapter(child: _buildPaymentSummaryCard()),
-            SliverToBoxAdapter(child: _buildQuickPaymentActions()),
-            SliverToBoxAdapter(child: _buildFiltersSection()),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            SliverToBoxAdapter(child: _buildPaymentHistory()),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        context.go('/dashboard');
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: null,
+        body: RefreshIndicator(
+          onRefresh: () async => _refreshPayments(),
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(),
+              SliverToBoxAdapter(child: _buildPaymentSummaryCard()),
+              SliverToBoxAdapter(child: _buildQuickPaymentActions()),
+              SliverToBoxAdapter(child: _buildFiltersSection()),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              SliverToBoxAdapter(child: _buildPaymentHistory()),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          ),
         ),
       ),
     );

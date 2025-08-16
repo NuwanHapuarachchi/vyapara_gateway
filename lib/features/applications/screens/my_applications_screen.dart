@@ -218,40 +218,32 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   Widget build(BuildContext context) {
     final filteredApplications = _getFilteredApplications();
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          context.go('/dashboard');
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: CustomScrollView(
-              slivers: [
-                // App Bar
-                _buildSliverAppBar(),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: CustomScrollView(
+            slivers: [
+              // App Bar
+              _buildSliverAppBar(),
 
-                // Statistics Cards
-                _buildStatisticsSection(),
+              // Statistics Cards
+              _buildStatisticsSection(),
 
-                // Filter Chips
-                _buildFilterChips(),
+              // Filter Chips
+              _buildFilterChips(),
 
-                // Applications List
-                _buildApplicationsList(filteredApplications),
+              // Applications List
+              _buildApplicationsList(filteredApplications),
 
-                // Bottom Spacing
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
-            ),
+              // Bottom Spacing
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
           ),
         ),
-        floatingActionButton: _buildFloatingActionButton(),
       ),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 

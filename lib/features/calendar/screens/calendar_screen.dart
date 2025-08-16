@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/app_colors.dart';
 import '../models/calendar_event.dart';
@@ -107,159 +108,169 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          'Calendar',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.add,
+    return WillPopScope(
+      onWillPop: () async {
+        context.go('/dashboard');
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          title: Text(
+            'Calendar',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
               color: isDark
                   ? AppColors.textPrimary
                   : AppColors.textPrimaryLight,
             ),
-            onPressed: () => _navigateToAddEvent(),
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Calendar widget
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark
-                          ? AppColors.borderLight
-                          : AppColors.borderLightTheme,
-                    ),
-                  ),
-                  child: TableCalendar<CalendarEvent>(
-                    firstDay: DateTime.utc(2020, 1, 1),
-                    lastDay: DateTime.utc(2030, 12, 31),
-                    focusedDay: _focusedDay,
-                    calendarFormat: _calendarFormat,
-                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    eventLoader: (day) =>
-                        _events[DateTime(day.year, day.month, day.day)] ?? [],
-                    onDaySelected: _onDaySelected,
-                    onFormatChanged: _onFormatChanged,
-                    onPageChanged: _onPageChanged,
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      weekendTextStyle: TextStyle(color: AppColors.error),
-                      holidayTextStyle: TextStyle(color: AppColors.error),
-                      selectedDecoration: BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      todayDecoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      markerDecoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    headerStyle: HeaderStyle(
-                      formatButtonVisible: true,
-                      titleCentered: true,
-                      formatButtonShowsNext: false,
-                      titleTextStyle: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Selected day events
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? AppColors.textPrimary
-                                : AppColors.textPrimaryLight,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Expanded(
-                          child: _selectedEvents.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.event_busy,
-                                        size: 64,
-                                        color: isDark
-                                            ? AppColors.textSecondary
-                                            : AppColors.textSecondaryLight,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No events for this day',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 16,
-                                          color: isDark
-                                              ? AppColors.textSecondary
-                                              : AppColors.textSecondaryLight,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Tap + to add an event',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          color: isDark
-                                              ? AppColors.textSecondary
-                                              : AppColors.textSecondaryLight,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : ListView.builder(
-                                  itemCount: _selectedEvents.length,
-                                  itemBuilder: (context, index) {
-                                    final event = _selectedEvents[index];
-                                    return _EventCard(
-                                      event: event,
-                                      onTap: () =>
-                                          _navigateToEventDetail(event),
-                                      onDelete: () => _deleteEvent(event),
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.add,
+                color: isDark
+                    ? AppColors.textPrimary
+                    : AppColors.textPrimaryLight,
+              ),
+              onPressed: () => _navigateToAddEvent(),
             ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  // Calendar widget
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.borderLight
+                            : AppColors.borderLightTheme,
+                      ),
+                    ),
+                    child: TableCalendar<CalendarEvent>(
+                      firstDay: DateTime.utc(2020, 1, 1),
+                      lastDay: DateTime.utc(2030, 12, 31),
+                      focusedDay: _focusedDay,
+                      calendarFormat: _calendarFormat,
+                      selectedDayPredicate: (day) =>
+                          isSameDay(_selectedDay, day),
+                      eventLoader: (day) =>
+                          _events[DateTime(day.year, day.month, day.day)] ?? [],
+                      onDaySelected: _onDaySelected,
+                      onFormatChanged: _onFormatChanged,
+                      onPageChanged: _onPageChanged,
+                      calendarStyle: CalendarStyle(
+                        outsideDaysVisible: false,
+                        weekendTextStyle: TextStyle(color: AppColors.error),
+                        holidayTextStyle: TextStyle(color: AppColors.error),
+                        selectedDecoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        todayDecoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        markerDecoration: BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      headerStyle: HeaderStyle(
+                        formatButtonVisible: true,
+                        titleCentered: true,
+                        formatButtonShowsNext: false,
+                        titleTextStyle: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Selected day events
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Events for ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.textPrimary
+                                  : AppColors.textPrimaryLight,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _selectedEvents.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.event_busy,
+                                          size: 64,
+                                          color: isDark
+                                              ? AppColors.textSecondary
+                                              : AppColors.textSecondaryLight,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No events for this day',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 16,
+                                            color: isDark
+                                                ? AppColors.textSecondary
+                                                : AppColors.textSecondaryLight,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Tap + to add an event',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 14,
+                                            color: isDark
+                                                ? AppColors.textSecondary
+                                                : AppColors.textSecondaryLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _selectedEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = _selectedEvents[index];
+                                      return _EventCard(
+                                        event: event,
+                                        onTap: () =>
+                                            _navigateToEventDetail(event),
+                                        onDelete: () => _deleteEvent(event),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 

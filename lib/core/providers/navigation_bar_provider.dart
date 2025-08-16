@@ -12,7 +12,7 @@ class NavigationBarTypeNotifier extends Notifier<NavigationBarType> {
   @override
   NavigationBarType build() {
     _loadPreference();
-    return NavigationBarType.bubble;
+    return NavigationBarType.fluidGlass;
   }
 
   static const String _prefsKey = 'navigation_bar_type';
@@ -21,7 +21,7 @@ class NavigationBarTypeNotifier extends Notifier<NavigationBarType> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final typeIndex =
-          prefs.getInt(_prefsKey) ?? NavigationBarType.bubble.index;
+          prefs.getInt(_prefsKey) ?? NavigationBarType.fluidGlass.index;
 
       if (typeIndex >= 0 && typeIndex < NavigationBarType.values.length) {
         state = NavigationBarType.values[typeIndex];

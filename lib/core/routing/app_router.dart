@@ -94,7 +94,7 @@ class AppRouter {
             ),
           ),
           GoRoute(
-            path: 'nic-upload',
+            path: '/nic-upload',
             name: 'nic-upload',
             pageBuilder: (context, state) => PageTransitions.slideUpTransition(
               context,
@@ -351,7 +351,7 @@ class AppNavigation {
 
   /// Navigate to NIC upload
   static void toNicUpload(BuildContext context) {
-    context.go('/dashboard/nic-upload');
+    context.go('/nic-upload');
   }
 
   /// Navigate to AI help
