@@ -18,7 +18,9 @@ class AppColors {
   static const Color accent = Color(0xFF36AD35); // Green accent
 
   // Dark Theme Background Colors
-  static const Color backgroundDark = Color(0xFF161616); // Exact Figma background
+  static const Color backgroundDark = Color(
+    0xFF161616,
+  ); // Exact Figma background
   static const Color surfaceDark = Color(0xFF161616); // Same as background
   static const Color cardDark = Color(0xFF161616); // Dark card background
 
@@ -31,12 +33,20 @@ class AppColors {
   static const Color textPrimary = Color(0xFFFFFFFF); // Pure white text
   static const Color textSecondary = Color(0xFFAAAAAA); // Gray from Figma
   static const Color textTertiary = Color(0xFF666666); // Darker gray
-  static const Color textOnDark = Color(0xFF111827); // Dark text on light backgrounds
+  static const Color textOnDark = Color(
+    0xFF111827,
+  ); // Dark text on light backgrounds
 
   // Light Theme Text Colors
-  static const Color textPrimaryLight = Color(0xFF111827); // Dark text for light theme
-  static const Color textSecondaryLight = Color(0xFF6B7280); // Gray for light theme
-  static const Color textTertiaryLight = Color(0xFF9CA3AF); // Light gray for light theme
+  static const Color textPrimaryLight = Color(
+    0xFF111827,
+  ); // Dark text for light theme
+  static const Color textSecondaryLight = Color(
+    0xFF6B7280,
+  ); // Gray for light theme
+  static const Color textTertiaryLight = Color(
+    0xFF9CA3AF,
+  ); // Light gray for light theme
 
   // Status Colors
   static const Color success = Color(0xFF10B981);
@@ -64,9 +74,4 @@ class AppColors {
     Color(0xFFEC4899),
     Color(0xFFF472B6),
   ];
-
-  // Simplified 3-Color System
-  // Primary: Purple/Indigo (0xFF6366F1)
-  // Secondary: Pink (0xFFEC4899)
-  // Accent: Green (0xFF36AD35)
 }

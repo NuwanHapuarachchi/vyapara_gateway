@@ -25,8 +25,6 @@ class SupabaseConfig {
       print('Supabase initialized successfully');
     } catch (e) {
       print('Supabase initialization failed: $e');
-      // Don't throw error - allow app to continue in offline mode
-      // The app will show network status and provide fallback functionality
     }
   }
 

@@ -1,0 +1,31 @@
+# Flutter & build artifacts
+.buildlog/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+**/build/
+**/ios/
+**/android/
+**/macos/
+**/windows/
+**/linux/
+**/.gradle/
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# Node/NPM
+node_modules/
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE logs
+*.log
