@@ -36,6 +36,8 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
+    // Explicitly set filter to show all applications by default
+    _currentFilter = ApplicationFilter.all;
     _loadApplications();
   }
 
@@ -57,42 +59,53 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
 
       final mapped = await Future.wait(
         rows.map((row) async {
-          final statusString = (row['status'] as String?) ?? 'draft';
           final submittedAt = row['submitted_at'] as String?;
           final String applicantId = row['applicant_id']?.toString() ?? '';
           final String? appNumber = row['application_number']?.toString();
+          final statusString = (row['status'] as String?) ?? 'submitted';
 
           print(
             'Processing application ${appNumber} for applicant ${applicantId}',
           );
 
+          // Get document count from storage bucket (fallback method)
           final int docCount = applicantId.isNotEmpty
               ? await SupabaseService.countDocumentsForApplication(
                   applicantId,
                   appNumber,
                 )
               : 0;
+          final int progress = _computeProgress(
+            row['completed_steps'],
+            row['total_steps'],
+          );
 
-          print('Found ${docCount} documents for application ${appNumber}');
-          print('Creating ApplicationData with applicantId: ${applicantId}');
+          print(
+            'Application ${appNumber}: Status=${statusString}, Docs=${docCount}, Progress=${progress}%',
+          );
+
+          // Build description based on document count
+          String description = docCount > 0
+              ? 'Your submitted application with $docCount document(s)'
+              : 'Your submitted application';
+
+          // Build rejection reason from database
+          String? rejectionReason = row['rejection_reason'] as String?;
 
           return ApplicationData(
             id: row['id'].toString(),
             title: 'Application ${row['application_number'] ?? row['id']}',
-            description: 'Your submitted application',
+            description: description,
             status: _parseStatus(statusString),
             submittedDate: submittedAt != null
                 ? DateTime.tryParse(submittedAt) ?? DateTime.now()
                 : DateTime.now(),
             expectedCompletion: _tryParseDate(row['estimated_completion_date']),
-            progress: _computeProgress(
-              row['completed_steps'],
-              row['total_steps'],
-            ),
+            progress: progress,
             category: ApplicationCategory.companyRegistration,
             priority: ApplicationPriority.medium,
             documentsCount: docCount,
-            rejectionReason: row['rejection_reason'] as String?,
+            rejectionReason: rejectionReason,
             applicantId: applicantId,
           );
         }),
@@ -132,6 +145,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       setState(() {
         _applications = mapped;
       });
+      print(
+        'Loaded ${mapped.length} applications, current filter: $_currentFilter',
+      );
     } catch (e) {
       // If anything fails, show empty friendly state
       setState(() {

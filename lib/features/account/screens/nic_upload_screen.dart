@@ -1,12 +1,12 @@
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/models/user_model.dart';
+
 import '../../../core/services/supabase_service.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -19,7 +19,7 @@ class NicUploadScreen extends ConsumerStatefulWidget {
 }
 
 class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
-  File? _selectedFile;
+  Uint8List? _selectedFileBytes;
   String? _fileName;
   String? _fileSize;
   bool _isUploading = false;
@@ -32,15 +32,33 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
   void initState() {
     super.initState();
     _loadCurrentNic();
+    _checkExistingUpload();
   }
 
   void _loadCurrentNic() {
-    final user = ref.read(currentUserProvider);
-    if (user?.nic != null) {
-      setState(() {
-        _nicNumber = user!.nic;
-      });
-    }
+    final authState = ref.read(authProvider);
+    authState.whenData((user) {
+      if (user?.nic != null) {
+        setState(() {
+          _nicNumber = user!.nic;
+        });
+      }
+    });
+  }
+
+  void _checkExistingUpload() {
+    final authState = ref.read(authProvider);
+    authState.whenData((user) {
+      if (user != null) {
+        // Check if user has already uploaded NIC
+        if (user.nicDocumentUrl != null && user.nicDocumentUrl!.isNotEmpty) {
+          setState(() {
+            _isUploaded = true;
+            _uploadedFileUrl = user.nicDocumentUrl;
+          });
+        }
+      }
+    });
   }
 
   Future<void> _pickFile() async {
@@ -49,18 +67,30 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
         allowMultiple: false,
+        withData: true, // Important for web compatibility
       );
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        final path = file.path;
 
-        if (path != null) {
+        // Check file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
           setState(() {
-            _selectedFile = File(path);
+            _errorMessage = 'File size must be less than 10MB';
+          });
+          return;
+        }
+
+        if (file.bytes != null) {
+          setState(() {
+            _selectedFileBytes = file.bytes;
             _fileName = file.name;
             _fileSize = _formatFileSize(file.size);
             _errorMessage = null;
+          });
+        } else {
+          setState(() {
+            _errorMessage = 'Could not read file data';
           });
         }
       }
@@ -78,7 +108,7 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
   }
 
   Future<void> _uploadFile() async {
-    if (_selectedFile == null) return;
+    if (_selectedFileBytes == null) return;
 
     setState(() {
       _isUploading = true;
@@ -86,9 +116,6 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
     });
 
     try {
-      // Read file bytes
-      final bytes = await _selectedFile!.readAsBytes();
-
       // Generate unique filename
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final extension = _fileName?.split('.').last ?? 'jpg';
@@ -96,14 +123,16 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
 
       // Upload to Supabase storage
       final url = await SupabaseService.uploadDocumentBytes(
-        data: bytes,
+        data: _selectedFileBytes!,
         fileName: filename,
         contentType: _getContentType(extension),
       );
 
       if (url != null) {
-        // Update user profile with NIC document URL
-        final user = ref.read(currentUserProvider);
+        // Get current user from auth provider
+        final authState = ref.read(authProvider);
+        final user = authState.value;
+
         if (user != null) {
           final updatedUser = await SupabaseService.updateUserProfile(user.id, {
             'nic_document_url': url,
@@ -118,18 +147,22 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
               _isUploading = false;
             });
 
-            // Refresh the user data
-            ref.invalidate(currentUserProvider);
+            // Refresh the auth provider
+            ref.invalidate(authProvider);
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('NIC document uploaded successfully!'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('NIC document uploaded successfully!'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            }
           } else {
             throw Exception('Failed to update user profile');
           }
+        } else {
+          throw Exception('User not found');
         }
       } else {
         throw Exception('Failed to upload file');
@@ -158,7 +191,7 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
 
   void _removeFile() {
     setState(() {
-      _selectedFile = null;
+      _selectedFileBytes = null;
       _fileName = null;
       _fileSize = null;
       _errorMessage = null;
@@ -333,7 +366,7 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
                   const SizedBox(height: 16),
 
                   // File picker button
-                  if (_selectedFile == null && !_isUploaded)
+                  if (_selectedFileBytes == null && !_isUploaded)
                     SizedBox(
                       width: double.infinity,
                       height: 120,
@@ -382,7 +415,7 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
                     ),
 
                   // Selected file info
-                  if (_selectedFile != null && !_isUploaded) ...[
+                  if (_selectedFileBytes != null && !_isUploaded) ...[
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -494,34 +527,72 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
                           width: 1,
                         ),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: AppColors.success,
-                            size: 20,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: AppColors.success,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Document Uploaded Successfully!',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.success,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Your NIC document has been uploaded and is pending verification.',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: AppColors.success,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Document Uploaded Successfully!',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.success,
-                                  ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isUploaded = false;
+                                  _uploadedFileUrl = null;
+                                  _selectedFileBytes = null;
+                                  _fileName = null;
+                                  _fileSize = null;
+                                  _errorMessage = null;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: BorderSide(color: AppColors.primary),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
                                 ),
-                                Text(
-                                  'Your NIC document has been uploaded and is pending verification.',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: AppColors.success,
-                                  ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                              ],
+                              ),
+                              child: Text(
+                                'Upload New Document',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                         ],

@@ -183,6 +183,15 @@ class AuthNotifier extends AsyncNotifier<UserProfile?> {
 
         if (insertResponse != null) {
           print('User profile created successfully');
+
+          // Add NIC to validation data table
+          print('Adding NIC to validation data table...');
+          await SupabaseService.addNicToValidationData(
+            nic: nic,
+            fullName: fullName,
+            // You can add more fields here if available from the signup form
+          );
+
           final userProfile = UserProfile.fromJson(insertResponse);
           state = AsyncValue.data(userProfile);
         } else {

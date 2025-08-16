@@ -882,6 +882,7 @@ class SupabaseService {
           'full_name': 'John Perera',
           'date_of_birth': '1990-05-15',
           'gender': 'Male',
+          'district': 'Colombo',
           'is_valid': true,
         },
         '987654321V': {
@@ -889,6 +890,7 @@ class SupabaseService {
           'full_name': 'Jane Silva',
           'date_of_birth': '1985-12-20',
           'gender': 'Female',
+          'district': 'Kandy',
           'is_valid': true,
         },
         '555666777V': {
@@ -896,12 +898,113 @@ class SupabaseService {
           'full_name': 'Ravi Fernando',
           'date_of_birth': '1992-08-10',
           'gender': 'Male',
+          'district': 'Gampaha',
           'is_valid': true,
         },
       };
 
       return sampleNics[nic];
     }
+  }
+
+  /// Add NIC to validation data table during signup
+  static Future<bool> addNicToValidationData({
+    required String nic,
+    required String fullName,
+    String? dateOfBirth,
+    String? gender,
+    String? district,
+  }) async {
+    try {
+      // Check if NIC already exists
+      final existingNic = await _client
+          .from('nic_validation_data')
+          .select('nic')
+          .eq('nic', nic)
+          .maybeSingle();
+
+      if (existingNic != null) {
+        print('NIC $nic already exists in validation data');
+        return true; // Already exists, consider it successful
+      }
+
+      // Extract info from NIC if not provided
+      final nicInfo = _extractInfoFromNic(nic);
+
+      // Add new NIC to validation data
+      await _client.from('nic_validation_data').insert({
+        'nic': nic,
+        'full_name': fullName,
+        'date_of_birth': dateOfBirth ?? nicInfo['dateOfBirth'] ?? '1990-01-01',
+        'gender': gender ?? nicInfo['gender'] ?? 'Not Specified',
+        'district': district ?? 'Unknown',
+        'is_valid': true,
+      });
+
+      print('Successfully added NIC $nic to validation data');
+      return true;
+    } catch (e) {
+      print('Error adding NIC to validation data: $e');
+      return false;
+    }
+  }
+
+  /// Extract basic info from Sri Lankan NIC number
+  static Map<String, String?> _extractInfoFromNic(String nic) {
+    try {
+      if (nic.length == 10 && nic.endsWith('V')) {
+        // Old format: 123456789V
+        final yearPart = int.parse(nic.substring(0, 2));
+        final daysPart = int.parse(nic.substring(2, 5));
+
+        // Determine year (assuming current century for years 00-30, previous for 31-99)
+        final currentYear = DateTime.now().year;
+        final currentCentury = (currentYear ~/ 100) * 100;
+        final year = yearPart <= 30
+            ? currentCentury + yearPart
+            : currentCentury - 100 + yearPart;
+
+        // Determine gender and day of year
+        final isWoman = daysPart > 500;
+        final actualDayOfYear = isWoman ? daysPart - 500 : daysPart;
+
+        // Calculate approximate date (this is a simplified calculation)
+        final dateOfBirth = DateTime(
+          year,
+          1,
+          1,
+        ).add(Duration(days: actualDayOfYear - 1));
+
+        return {
+          'dateOfBirth':
+              '${dateOfBirth.year}-${dateOfBirth.month.toString().padLeft(2, '0')}-${dateOfBirth.day.toString().padLeft(2, '0')}',
+          'gender': isWoman ? 'Female' : 'Male',
+        };
+      } else if (nic.length == 12) {
+        // New format: 200015501234
+        final year = int.parse(nic.substring(0, 4));
+        final daysPart = int.parse(nic.substring(4, 7));
+
+        final isWoman = daysPart > 500;
+        final actualDayOfYear = isWoman ? daysPart - 500 : daysPart;
+
+        final dateOfBirth = DateTime(
+          year,
+          1,
+          1,
+        ).add(Duration(days: actualDayOfYear - 1));
+
+        return {
+          'dateOfBirth':
+              '${dateOfBirth.year}-${dateOfBirth.month.toString().padLeft(2, '0')}-${dateOfBirth.day.toString().padLeft(2, '0')}',
+          'gender': isWoman ? 'Female' : 'Male',
+        };
+      }
+    } catch (e) {
+      print('Error extracting info from NIC $nic: $e');
+    }
+
+    return {'dateOfBirth': null, 'gender': null};
   }
 
   /// =============================
@@ -1028,15 +1131,34 @@ class SupabaseService {
       final businessId = businessResponse['id'];
 
       // Create the application record
-      await _client.from('business_applications').insert({
-        'business_id': businessId,
-        'applicant_id': userId,
-        'status': 'submitted',
-        'current_step': 'document_review',
-        'total_steps': 5,
-        'completed_steps': 5,
-        'submitted_at': DateTime.now().toIso8601String(),
-      });
+      final applicationResponse = await _client
+          .from('business_applications')
+          .insert({
+            'business_id': businessId,
+            'applicant_id': userId,
+            'status': 'submitted',
+            'current_step': 'document_review',
+            'total_steps': 5,
+            'completed_steps': 5,
+            'submitted_at': DateTime.now().toIso8601String(),
+          })
+          .select()
+          .single();
+
+      final applicationId = applicationResponse['id'];
+
+      // Register uploaded documents in application_documents table
+      final uploadedDocuments =
+          registrationData['business_details']?['uploaded_documents']
+              as Map<String, dynamic>?;
+      if (uploadedDocuments != null && uploadedDocuments.isNotEmpty) {
+        print(
+          'Registering ${uploadedDocuments.length} documents for application $applicationId',
+        );
+
+        final documentPaths = uploadedDocuments.values.cast<String>().toList();
+        await registerApplicationDocuments(applicationId, documentPaths);
+      }
 
       return true;
     } catch (e) {
@@ -1078,6 +1200,405 @@ class SupabaseService {
     } catch (e) {
       print('Error fetching user applications: $e');
       return [];
+    }
+  }
+
+  /// =============================
+  /// Document Status Tracking
+  /// =============================
+
+  /// Register documents when they are uploaded to an application
+  static Future<bool> registerApplicationDocuments(
+    String applicationId,
+    List<String> documentPaths,
+  ) async {
+    try {
+      print(
+        'Registering ${documentPaths.length} documents for application $applicationId',
+      );
+      print('Document paths: ${documentPaths.join(', ')}');
+
+      final documentsData = documentPaths
+          .map(
+            (path) => {
+              'application_id': applicationId,
+              'document_name': path.split('/').last,
+              'document_path': path,
+              'document_type': _inferDocumentType(path),
+              'status': 'submitted',
+            },
+          )
+          .toList();
+
+      print('Documents to insert: ${documentsData.length}');
+      for (final doc in documentsData) {
+        print('  - ${doc['document_name']} (${doc['document_type']})');
+      }
+
+      await _client.from('application_documents').insert(documentsData);
+
+      print(
+        'Successfully registered ${documentsData.length} documents for application $applicationId',
+      );
+      return true;
+    } catch (e) {
+      print('Error registering documents: $e');
+      return false;
+    }
+  }
+
+  /// Get document status summary for an application
+  static Future<Map<String, dynamic>> getApplicationDocumentSummary(
+    String applicationId,
+  ) async {
+    try {
+      print('Getting document summary for application: $applicationId');
+      final response = await _client
+          .from('application_documents')
+          .select('status, rejection_reason')
+          .eq('application_id', applicationId);
+
+      final documents = List<Map<String, dynamic>>.from(response);
+      print(
+        'Found ${documents.length} documents in application_documents table for $applicationId',
+      );
+
+      if (documents.isEmpty) {
+        print(
+          'No documents found for application $applicationId, returning empty summary',
+        );
+        return {
+          'overall_status': 'submitted',
+          'progress': 0,
+          'approved_docs': 0,
+          'rejected_docs': 0,
+          'pending_docs': 0,
+          'total_docs': 0,
+          'has_rejections': false,
+          'rejection_reasons': <String>[],
+        };
+      }
+
+      final approved = documents.where((d) => d['status'] == 'approved').length;
+      final rejected = documents.where((d) => d['status'] == 'rejected').length;
+      final underReview = documents
+          .where((d) => d['status'] == 'under_review')
+          .length;
+      final submitted = documents
+          .where((d) => d['status'] == 'submitted')
+          .length;
+      final total = documents.length;
+
+      // Calculate overall status
+      String overallStatus;
+      if (rejected > 0) {
+        overallStatus = 'rejected';
+      } else if (approved == total) {
+        overallStatus = 'approved';
+      } else if (underReview > 0 || submitted > 0) {
+        overallStatus = 'document_review';
+      } else {
+        overallStatus = 'submitted';
+      }
+
+      // Calculate progress percentage
+      final progress = total > 0 ? ((approved / total) * 100).round() : 0;
+
+      // Get rejection reasons
+      final rejectionReasons = documents
+          .where(
+            (d) => d['status'] == 'rejected' && d['rejection_reason'] != null,
+          )
+          .map((d) => d['rejection_reason'] as String)
+          .toList();
+
+      return {
+        'overall_status': overallStatus,
+        'progress': progress,
+        'approved_docs': approved,
+        'rejected_docs': rejected,
+        'pending_docs': submitted + underReview,
+        'total_docs': total,
+        'has_rejections': rejected > 0,
+        'rejection_reasons': rejectionReasons,
+      };
+    } catch (e) {
+      print('Error getting application document summary: $e');
+      return {
+        'overall_status': 'submitted',
+        'progress': 0,
+        'approved_docs': 0,
+        'rejected_docs': 0,
+        'pending_docs': 0,
+        'total_docs': 0,
+        'has_rejections': false,
+        'rejection_reasons': <String>[],
+      };
+    }
+  }
+
+  /// Get detailed document list for an application (for detailed view)
+  static Future<List<Map<String, dynamic>>> getApplicationDocuments(
+    String applicationId,
+  ) async {
+    try {
+      final response = await _client
+          .from('application_documents')
+          .select('*')
+          .eq('application_id', applicationId)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error getting application documents: $e');
+      return [];
+    }
+  }
+
+  /// Helper method to infer document type from file name
+  static String _inferDocumentType(String path) {
+    final fileName = path.toLowerCase();
+
+    // Sri Lankan business registration specific document types
+    if (fileName.contains('application_form') || fileName.contains('form_1')) {
+      return 'registration_form';
+    } else if (fileName.contains('grama_niladhari') ||
+        fileName.contains('certified_report')) {
+      return 'grama_niladhari_report';
+    } else if (fileName.contains('nic_copy') || fileName.contains('id_copy')) {
+      return 'identification';
+    } else if (fileName.contains('premises_proof') ||
+        fileName.contains('business_premises')) {
+      return 'business_premises';
+    } else if (fileName.contains('trade_permit') ||
+        fileName.contains('municipal')) {
+      return 'trade_permit';
+    } else if (fileName.contains('partnership_agreement') ||
+        fileName.contains('partners')) {
+      return 'partnership_agreement';
+    } else if (fileName.contains('form_18') ||
+        fileName.contains('director_consent')) {
+      return 'director_consent';
+    } else if (fileName.contains('form_19') ||
+        fileName.contains('secretary_consent')) {
+      return 'secretary_consent';
+    } else if (fileName.contains('articles_of_association') ||
+        fileName.contains('articles')) {
+      return 'articles_of_association';
+    } else if (fileName.contains('directors') ||
+        fileName.contains('shareholders')) {
+      return 'director_shareholder_id';
+    } else if (fileName.contains('address') || fileName.contains('proof')) {
+      return 'proof_of_address';
+    }
+    return 'other';
+  }
+
+  /// Update getUserApplications to include document status
+  static Future<List<Map<String, dynamic>>>
+  getUserApplicationsWithStatus() async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      print('Getting applications with status for user: $userId');
+      if (userId == null) {
+        print('No user ID found');
+        return [];
+      }
+
+      // Fetch business applications for the authenticated user
+      print('Querying business_applications table...');
+      final response = await _client
+          .from('business_applications')
+          .select(
+            'id, application_number, status, submitted_at, completed_steps, total_steps, rejection_reason, estimated_completion_date, applicant_id',
+          )
+          .eq('applicant_id', userId)
+          .order('submitted_at', ascending: false);
+
+      print('Found ${response.length} applications in database');
+
+      // Enhance each application with document status
+      final enhancedApplications = <Map<String, dynamic>>[];
+
+      for (final app in response) {
+        final applicationId = app['id'].toString();
+        final docSummary = await getApplicationDocumentSummary(applicationId);
+
+        // Create enhanced application data
+        final enhancedApp = Map<String, dynamic>.from(app);
+        enhancedApp['document_summary'] = docSummary;
+
+        // Override status if document review reveals different status
+        if (docSummary['overall_status'] != 'submitted') {
+          enhancedApp['calculated_status'] = docSummary['overall_status'];
+        }
+
+        enhancedApplications.add(enhancedApp);
+
+        print(
+          '  - ${app['application_number']}: ${enhancedApp['calculated_status'] ?? app['status']} '
+          '(${docSummary['approved_docs']}/${docSummary['total_docs']} docs approved)',
+        );
+      }
+
+      return enhancedApplications;
+    } catch (e) {
+      print('Error fetching user applications with status: $e');
+      return getUserApplications(); // Fallback to original method
+    }
+  }
+
+  /// =============================
+  /// Admin/Testing Methods
+  /// =============================
+
+  /// For testing: Create sample document records for an existing application
+  static Future<bool> createSampleDocumentRecords(String applicationId) async {
+    try {
+      final sampleDocs = [
+        {
+          'application_id': applicationId,
+          'document_name': 'business_registration_form.pdf',
+          'document_path': 'user_folder/business_registration_form.pdf',
+          'document_type': 'registration_form',
+          'status': 'approved',
+        },
+        {
+          'application_id': applicationId,
+          'document_name': 'proof_of_address.pdf',
+          'document_path': 'user_folder/proof_of_address.pdf',
+          'document_type': 'proof_of_address',
+          'status': 'under_review',
+        },
+        {
+          'application_id': applicationId,
+          'document_name': 'nic_copy.pdf',
+          'document_path': 'user_folder/nic_copy.pdf',
+          'document_type': 'identification',
+          'status': 'rejected',
+          'rejection_reason':
+              'Document is not clear, please upload a clearer copy',
+        },
+        {
+          'application_id': applicationId,
+          'document_name': 'business_premises_proof.pdf',
+          'document_path': 'user_folder/business_premises_proof.pdf',
+          'document_type': 'business_document',
+          'status': 'submitted',
+        },
+        {
+          'application_id': applicationId,
+          'document_name': 'trade_permit_application.pdf',
+          'document_path': 'user_folder/trade_permit_application.pdf',
+          'document_type': 'trade_permit',
+          'status': 'approved',
+        },
+      ];
+
+      await _client.from('application_documents').insert(sampleDocs);
+
+      print(
+        'Created ${sampleDocs.length} sample document records for application $applicationId',
+      );
+      return true;
+    } catch (e) {
+      print('Error creating sample document records: $e');
+      return false;
+    }
+  }
+
+  /// For existing applications: Register documents from uploaded_documents in business_details
+  static Future<bool> registerExistingApplicationDocuments(
+    String applicationId,
+  ) async {
+    try {
+      // Get the application and business details
+      final appResponse = await _client
+          .from('business_applications')
+          .select('business_id')
+          .eq('id', applicationId)
+          .single();
+
+      final businessResponse = await _client
+          .from('businesses')
+          .select('business_details')
+          .eq('id', appResponse['business_id'])
+          .single();
+
+      final businessDetails =
+          businessResponse['business_details'] as Map<String, dynamic>;
+      final uploadedDocuments =
+          businessDetails['uploaded_documents'] as Map<String, dynamic>?;
+
+      print(
+        'Business details for application $applicationId: ${businessDetails.keys.toList()}',
+      );
+      print('Uploaded documents field: $uploadedDocuments');
+
+      if (uploadedDocuments != null && uploadedDocuments.isNotEmpty) {
+        print(
+          'Found ${uploadedDocuments.length} uploaded documents to register',
+        );
+        print('Document types and URLs: $uploadedDocuments');
+
+        final documentPaths = uploadedDocuments.values.cast<String>().toList();
+        print('Extracted document paths: $documentPaths');
+
+        await registerApplicationDocuments(applicationId, documentPaths);
+
+        return true;
+      } else {
+        print('No uploaded documents found for application $applicationId');
+        print('Business details structure: ${businessDetails}');
+        return false;
+      }
+    } catch (e) {
+      print('Error registering existing application documents: $e');
+      return false;
+    }
+  }
+
+  /// Fix all applications that have uploaded documents but aren't registered
+  static Future<void> fixAllApplicationDocuments() async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) return;
+
+      print('Fixing document registration for all user applications...');
+
+      // Get all user applications
+      final applications = await _client
+          .from('business_applications')
+          .select('id, business_id')
+          .eq('applicant_id', userId);
+
+      for (final app in applications) {
+        final applicationId = app['id'];
+        print(
+          'Checking application $applicationId for unregistered documents...',
+        );
+
+        // Check if documents are already registered
+        final existingDocs = await _client
+            .from('application_documents')
+            .select('id')
+            .eq('application_id', applicationId);
+
+        if (existingDocs.isEmpty) {
+          print(
+            'No documents registered for application $applicationId, attempting to register...',
+          );
+          await registerExistingApplicationDocuments(applicationId);
+        } else {
+          print(
+            'Application $applicationId already has ${existingDocs.length} documents registered',
+          );
+        }
+      }
+
+      print('Finished fixing document registration');
+    } catch (e) {
+      print('Error fixing application documents: $e');
     }
   }
 }
