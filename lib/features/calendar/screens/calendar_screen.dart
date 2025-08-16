@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../shared/widgets/neumorphic_widgets.dart';
 import '../models/calendar_event.dart';
 import '../services/calendar_service.dart';
 import 'add_event_screen.dart';

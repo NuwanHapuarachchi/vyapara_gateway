@@ -557,7 +557,7 @@ class RequirementsChecklistScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Continue to Application',
@@ -566,7 +566,7 @@ class RequirementsChecklistScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Requirements List',
@@ -890,7 +890,7 @@ class TradeLicenseFormScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Continue to Payment',
@@ -899,7 +899,7 @@ class TradeLicenseFormScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Application',
@@ -1260,7 +1260,7 @@ class LicensePaymentScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Book Appointment',
@@ -1278,7 +1278,7 @@ class LicensePaymentScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Application Pack',

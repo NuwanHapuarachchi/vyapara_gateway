@@ -186,7 +186,7 @@ class TaxBriefingScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Continue to Application',
@@ -195,7 +195,7 @@ class TaxBriefingScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Tax Guide',
@@ -571,7 +571,7 @@ class TaxRegistrationFormScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Continue to Review',
@@ -580,7 +580,7 @@ class TaxRegistrationFormScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Application',
@@ -1014,7 +1014,7 @@ class TaxSubmitScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Application Pack',

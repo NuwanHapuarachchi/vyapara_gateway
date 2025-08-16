@@ -723,6 +723,55 @@ class SupabaseService {
     }
   }
 
+  /// Upload NIC document and update user profile
+  static Future<bool> uploadNicDocument({
+    required String userId,
+    required Uint8List documentData,
+    required String fileName,
+    String contentType = 'image/jpeg',
+  }) async {
+    try {
+      // Upload document to storage
+      final documentUrl = await uploadDocumentBytes(
+        data: documentData,
+        fileName: fileName,
+        contentType: contentType,
+      );
+
+      if (documentUrl == null) {
+        throw Exception('Failed to upload document');
+      }
+
+      // Update user profile with document information
+      final updatedUser = await updateUserProfile(userId, {
+        'nic_document_url': documentUrl,
+        'nic_uploaded_at': DateTime.now().toIso8601String(),
+        'nic_verification_status': 'pending',
+      });
+
+      return updatedUser != null;
+    } catch (e) {
+      print('Error uploading NIC document: $e');
+      return false;
+    }
+  }
+
+  /// Get NIC document verification status
+  static Future<String?> getNicVerificationStatus(String userId) async {
+    try {
+      final response = await _client
+          .from('user_profiles')
+          .select('nic_verification_status')
+          .eq('id', userId)
+          .maybeSingle();
+
+      return response?['nic_verification_status'] as String?;
+    } catch (e) {
+      print('Error getting NIC verification status: $e');
+      return null;
+    }
+  }
+
   /// Clean up orphaned auth users (users without profiles)
   static Future<void> cleanupOrphanedUsers() async {
     try {

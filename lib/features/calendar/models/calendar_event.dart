@@ -136,9 +136,10 @@ class CalendarEvent {
 
   String get reminderText {
     if (!hasReminders) return 'No reminders';
-    if (reminderMinutes! < 60) return '${reminderMinutes} minutes before';
-    if (reminderMinutes! < 1440)
+    if (reminderMinutes! < 60) return '$reminderMinutes minutes before';
+    if (reminderMinutes! < 1440) {
       return '${(reminderMinutes! / 60).round()} hours before';
+    }
     return '${(reminderMinutes! / 1440).round()} days before';
   }
 

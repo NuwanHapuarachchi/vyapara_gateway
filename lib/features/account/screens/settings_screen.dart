@@ -56,6 +56,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           // App Settings
                           _buildAppSettings(user),
 
+                          const SizedBox(height: 24),
+
+                          // NIC Upload Status Banner
+                          if (user.nicDocumentUrl != null &&
+                              !user.isNicVerified)
+                            _buildNicUploadStatusBanner(user),
+
                           const SizedBox(height: 32),
 
                           // Logout Button
@@ -239,9 +246,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListTile(
             leading: Icon(Icons.credit_card_outlined, color: AppColors.primary),
             title: const Text('NIC Proof Upload'),
-            subtitle: Text(user.nic ?? 'Not provided'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(user.nic ?? 'Not provided'),
+                if (user.nicDocumentUrl != null && !user.isNicVerified)
+                  Text(
+                    'Document uploaded - Pending verification',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
             trailing: user.isNicVerified
                 ? const Icon(Icons.check_circle, color: AppColors.success)
+                : user.nicDocumentUrl != null
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.upload_file, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Uploaded',
+                        style: GoogleFonts.inter(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -258,12 +295,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
             onTap: () {
-              // TODO: Implement NIC upload functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('NIC upload feature coming soon!'),
-                ),
-              );
+              context.go('/dashboard/nic-upload');
             },
           ),
           ListTile(
@@ -407,6 +439,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNicUploadStatusBanner(UserProfile user) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.upload_file, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'NIC Document Uploaded',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Text(
+                  'Your document is being reviewed. You will be notified once verification is complete.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

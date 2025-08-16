@@ -513,7 +513,7 @@ class BankPreparationScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Application Form',
@@ -530,7 +530,7 @@ class BankPreparationScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Continue to Appointment Booking',
@@ -861,7 +861,7 @@ class BankFinalStepsScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Book Appointment',
@@ -879,7 +879,7 @@ class BankFinalStepsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: NeumorphicButton(
                 text: 'Download Checklist',

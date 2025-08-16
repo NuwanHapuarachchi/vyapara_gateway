@@ -20,8 +20,6 @@ class CalendarService {
           .or('creator_id.eq.$userId,visibility.eq.public')
           .order('start_date', ascending: true);
 
-      if (response == null) return [];
-
       return response
           .map((json) {
             try {

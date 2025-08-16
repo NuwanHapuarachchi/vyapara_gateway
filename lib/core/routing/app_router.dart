@@ -6,6 +6,7 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/account/screens/settings_screen.dart';
+import '../../features/account/screens/nic_upload_screen.dart';
 import '../../features/ai_help/screens/ai_chat_screen.dart';
 import '../../features/applications/screens/my_applications_screen.dart';
 import '../../features/applications/screens/application_detail_screen.dart';
@@ -92,6 +93,16 @@ class AppRouter {
               const SettingsScreen(),
             ),
           ),
+          GoRoute(
+            path: 'nic-upload',
+            name: 'nic-upload',
+            pageBuilder: (context, state) => PageTransitions.slideUpTransition(
+              context,
+              state,
+              const NicUploadScreen(),
+            ),
+          ),
+
           GoRoute(
             path: '/ai-help',
             name: 'ai-help',
@@ -336,6 +347,11 @@ class AppNavigation {
   /// Navigate to settings
   static void toSettings(BuildContext context) {
     context.go('/settings');
+  }
+
+  /// Navigate to NIC upload
+  static void toNicUpload(BuildContext context) {
+    context.go('/dashboard/nic-upload');
   }
 
   /// Navigate to AI help

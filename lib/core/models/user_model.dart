@@ -28,6 +28,9 @@ class UserProfile {
   final bool isNicVerified;
   final bool isPhoneVerified;
   final String? profileImageUrl;
+  final String? nicDocumentUrl;
+  final String? nicUploadedAt;
+  final String? nicVerificationStatus;
   final Map<String, dynamic>? address;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -43,6 +46,9 @@ class UserProfile {
     this.isNicVerified = false,
     this.isPhoneVerified = false,
     this.profileImageUrl,
+    this.nicDocumentUrl,
+    this.nicUploadedAt,
+    this.nicVerificationStatus,
     this.address,
     required this.createdAt,
     required this.updatedAt,
@@ -61,6 +67,9 @@ class UserProfile {
       isNicVerified: json['is_nic_verified'] as bool? ?? false,
       isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
       profileImageUrl: json['profile_image_url'] as String?,
+      nicDocumentUrl: json['nic_document_url'] as String?,
+      nicUploadedAt: json['nic_uploaded_at'] as String?,
+      nicVerificationStatus: json['nic_verification_status'] as String?,
       address: json['address'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -80,6 +89,9 @@ class UserProfile {
       'is_nic_verified': isNicVerified,
       'is_phone_verified': isPhoneVerified,
       'profile_image_url': profileImageUrl,
+      'nic_document_url': nicDocumentUrl,
+      'nic_uploaded_at': nicUploadedAt,
+      'nic_verification_status': nicVerificationStatus,
       'address': address,
       'updated_at': DateTime.now().toIso8601String(),
     };
@@ -97,6 +109,9 @@ class UserProfile {
     bool? isNicVerified,
     bool? isPhoneVerified,
     String? profileImageUrl,
+    String? nicDocumentUrl,
+    String? nicUploadedAt,
+    String? nicVerificationStatus,
     Map<String, dynamic>? address,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -112,6 +127,10 @@ class UserProfile {
       isNicVerified: isNicVerified ?? this.isNicVerified,
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      nicDocumentUrl: nicDocumentUrl ?? this.nicDocumentUrl,
+      nicUploadedAt: nicUploadedAt ?? this.nicUploadedAt,
+      nicVerificationStatus:
+          nicVerificationStatus ?? this.nicVerificationStatus,
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
