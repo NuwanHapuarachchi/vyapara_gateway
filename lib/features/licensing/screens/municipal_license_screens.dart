@@ -16,7 +16,7 @@ class LocationConfirmScreen extends StatelessWidget {
         'Colombo Municipal Council',
         'Capital city - Main business district',
         'LKR 5,000 - 25,000',
-        '15-20 business days',
+        '1-2 business days',
         [
           'Trade License',
           'Food License',
@@ -30,7 +30,7 @@ class LocationConfirmScreen extends StatelessWidget {
         'Dehiwala-Mount Lavinia Municipal Council',
         'Suburban area - Mixed commercial zone',
         'LKR 3,000 - 15,000',
-        '10-15 business days',
+        '1-2 business days',
         ['Trade License', 'Food License', 'Small Business License'],
         Icons.store,
         AppColors.success,
@@ -39,7 +39,7 @@ class LocationConfirmScreen extends StatelessWidget {
         'Moratuwa Municipal Council',
         'Industrial area - Manufacturing hub',
         'LKR 2,500 - 12,000',
-        '8-12 business days',
+        '1-2 business days',
         ['Trade License', 'Industrial License', 'Warehouse License'],
         Icons.factory,
         AppColors.warning,
@@ -48,7 +48,7 @@ class LocationConfirmScreen extends StatelessWidget {
         'Sri Jayawardenepura Kotte Municipal Council',
         'Administrative capital area',
         'LKR 4,000 - 20,000',
-        '12-18 business days',
+        '1-2 business days',
         ['Trade License', 'Office License', 'Service License'],
         Icons.business,
         AppColors.error,
@@ -64,7 +64,7 @@ class LocationConfirmScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Select Your Local Council',
@@ -180,7 +180,7 @@ class LocationConfirmScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     '• License fees vary by business type and location\n'
-                    '• Processing times depend on document completeness\n'
+                    '• Processing time: 1-2 business days (subject to document completeness)\n'
                     '• Some licenses require premises inspection\n'
                     '• Annual renewal is mandatory\n'
                     '• Operating without a license is illegal',
@@ -407,7 +407,7 @@ class RequirementsChecklistScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'License Requirements',
@@ -543,7 +543,7 @@ class RequirementsChecklistScreen extends StatelessWidget {
                     '• All documents must be original or certified copies\n'
                     '• PHI report is mandatory for food businesses\n'
                     '• Premises inspection may be required\n'
-                    '• Processing time: ${council?.processingTime ?? '10-15 business days'}\n'
+                    '• Processing time: ${council?.processingTime ?? '1-2 business days'}\n'
                     '• License fees: ${council?.feeRange ?? 'LKR 3,000 - 20,000'}\n'
                     '• Annual renewal required',
                     style: GoogleFonts.inter(
@@ -686,7 +686,7 @@ class TradeLicenseFormScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'License Application Form',
@@ -875,7 +875,7 @@ class TradeLicenseFormScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     '• All information must be accurate and complete\n'
-                    '• Processing time: ${council?.processingTime ?? '10-15 business days'}\n'
+                    '• Processing time: ${council?.processingTime ?? '1-2 business days'}\n'
                     '• License fee: ${council?.feeRange ?? 'LKR 3,000 - 20,000'}\n'
                     '• Premises inspection may be required\n'
                     '• Annual renewal is mandatory',

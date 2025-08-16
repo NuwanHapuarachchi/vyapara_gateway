@@ -121,8 +121,8 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
       final extension = _fileName?.split('.').last ?? 'jpg';
       final filename = 'nic_$timestamp.$extension';
 
-      // Upload to Supabase storage
-      final url = await SupabaseService.uploadDocumentBytes(
+      // Upload to NIC storage bucket
+      final url = await SupabaseService.uploadNicBytes(
         data: _selectedFileBytes!,
         fileName: filename,
         contentType: _getContentType(extension),
@@ -135,9 +135,7 @@ class _NicUploadScreenState extends ConsumerState<NicUploadScreen> {
 
         if (user != null) {
           final updatedUser = await SupabaseService.updateUserProfile(user.id, {
-            'nic_document_url': url,
-            'nic_uploaded_at': DateTime.now().toIso8601String(),
-            'nic_verification_status': 'pending',
+            'is_nic_verified': false,
           });
 
           if (updatedUser != null) {

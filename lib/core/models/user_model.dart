@@ -28,9 +28,9 @@ class UserProfile {
   final bool isNicVerified;
   final bool isPhoneVerified;
   final String? profileImageUrl;
-  final String? nicDocumentUrl;
-  final String? nicUploadedAt;
-  final String? nicVerificationStatus;
+  final String? nicDocumentUrl; // optional legacy
+  final String? nicUploadedAt; // optional legacy
+  final String? nicVerificationStatus; // optional legacy
   final Map<String, dynamic>? address;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -140,7 +140,7 @@ class UserProfile {
   @override
   String toString() {
     return 'UserProfile(id: $id, email: $email, fullName: $fullName, '
-        'phone: $phone, nic: $nic, role: ${role.value})';
+        'phone: $phone, nic: $nic, role: ${role.value}, isNicVerified: $isNicVerified)';
   }
 }
 

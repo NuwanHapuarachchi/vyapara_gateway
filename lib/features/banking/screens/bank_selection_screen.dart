@@ -85,7 +85,7 @@ class BankSelectionScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Choose Your Banking Partner',
@@ -362,7 +362,7 @@ class BankPreparationScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Document Preparation',
@@ -648,7 +648,7 @@ class BankFinalStepsScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Appointment & Final Steps',

@@ -220,6 +220,7 @@ class SupabaseService {
   /// Documents (Storage bucket: 'business-documents')
   /// =============================
   static const String _documentsBucket = 'business-documents';
+  static const String _nicBucket = 'nic';
 
   /// Test storage bucket connectivity
   static Future<bool> testStorageBucket() async {
@@ -401,6 +402,50 @@ class SupabaseService {
       }
 
       return null;
+    }
+  }
+
+  /// =============================
+  /// NIC Storage (bucket: 'nic')
+  /// =============================
+  static Future<String?> uploadNicBytes({
+    required Uint8List data,
+    required String fileName,
+    String contentType = 'application/octet-stream',
+  }) async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      if (userId == null) {
+        print('NIC upload failed: User not authenticated');
+        return null;
+      }
+
+      final String path = '$userId/$fileName';
+      await _client.storage
+          .from(_nicBucket)
+          .uploadBinary(
+            path,
+            data,
+            fileOptions: FileOptions(contentType: contentType, upsert: true),
+          );
+
+      // Optionally return a public URL if bucket is public
+      final publicUrl = _client.storage.from(_nicBucket).getPublicUrl(path);
+      return publicUrl;
+    } catch (e) {
+      print('Error uploading NIC bytes: $e');
+      return null;
+    }
+  }
+
+  static Future<List<FileObject>> listNicFilesForUser(String userId) async {
+    try {
+      return await _client.storage
+          .from(_nicBucket)
+          .list(path: '$userId/', searchOptions: const SearchOptions());
+    } catch (e) {
+      print('Error listing NIC files: $e');
+      return [];
     }
   }
 

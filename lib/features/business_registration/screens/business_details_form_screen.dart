@@ -123,6 +123,7 @@ class _BusinessDetailsFormScreenState
     final provinces = ref.watch(sriLankanProvincesProvider);
     final districts = ref.watch(sriLankanDistrictsProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -135,7 +136,7 @@ class _BusinessDetailsFormScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Business Information Section
-                    _buildSectionHeader('Business Information'),
+                    _buildSectionHeader('Business Information', isDark),
                     const SizedBox(height: 16),
 
                     ThemedTextField(
@@ -178,7 +179,7 @@ class _BusinessDetailsFormScreenState
                     const SizedBox(height: 32),
 
                     // Business Address Section
-                    _buildSectionHeader('Business Address'),
+                    _buildSectionHeader('Business Address', isDark),
                     const SizedBox(height: 16),
 
                     _buildTextField(
@@ -281,7 +282,7 @@ class _BusinessDetailsFormScreenState
                     const SizedBox(height: 32),
 
                     // Contact Information Section
-                    _buildSectionHeader('Contact Information'),
+                    _buildSectionHeader('Contact Information', isDark),
                     const SizedBox(height: 16),
 
                     _buildTextField(
@@ -332,13 +333,13 @@ class _BusinessDetailsFormScreenState
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, bool isDark) {
     return Text(
       title,
       style: GoogleFonts.poppins(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+        color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
       ),
     );
   }
@@ -351,6 +352,7 @@ class _BusinessDetailsFormScreenState
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -359,7 +361,7 @@ class _BusinessDetailsFormScreenState
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -368,24 +370,35 @@ class _BusinessDetailsFormScreenState
           maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
-          style: GoogleFonts.inter(fontSize: 16, color: AppColors.textPrimary),
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondary
+                  : AppColors.textSecondaryLight,
             ),
             filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark 
-                ? AppColors.cardDark 
-                : const Color(0xFFF4F4F5),
+            fillColor: isDark ? AppColors.cardDark : AppColors.cardLight,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderLight),
+              borderSide: BorderSide(
+                color: isDark
+                    ? AppColors.borderLight
+                    : AppColors.borderLightTheme,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.borderLight),
+              borderSide: BorderSide(
+                color: isDark
+                    ? AppColors.borderLight
+                    : AppColors.borderLightTheme,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

@@ -17,7 +17,7 @@ class TaxBriefingScreen extends StatelessWidget {
         'Unique identifier for all taxpayers',
         'Required for all businesses and individuals',
         'Free registration',
-        '3-5 business days',
+        '1-2 business days',
         Icons.numbers,
         AppColors.primary,
       ),
@@ -26,7 +26,7 @@ class TaxBriefingScreen extends StatelessWidget {
         'Tax on goods and services',
         'Required if annual turnover > LKR 12M',
         'Free registration',
-        '7-10 business days',
+        '1-2 business days',
         Icons.receipt_long,
         AppColors.warning,
       ),
@@ -35,7 +35,7 @@ class TaxBriefingScreen extends StatelessWidget {
         'Tax deducted from employee salaries',
         'Required if you have employees',
         'Free registration',
-        '3-5 business days',
+        '1-2 business days',
         Icons.people,
         AppColors.success,
       ),
@@ -44,7 +44,7 @@ class TaxBriefingScreen extends StatelessWidget {
         'Tax on business turnover',
         'Required for certain business types',
         'Free registration',
-        '5-7 business days',
+        '1-2 business days',
         Icons.account_balance,
         AppColors.error,
       ),
@@ -59,7 +59,7 @@ class TaxBriefingScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Tax Registration Guide',
@@ -395,7 +395,7 @@ class TaxRegistrationFormScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Tax Registration Application',
@@ -556,7 +556,7 @@ class TaxRegistrationFormScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     '• All documents must be clear and valid\n'
-                    '• Processing time: 5-10 business days\n'
+                    '• Processing time: 1-2 business days\n'
                     '• You will receive TIN via email/SMS\n'
                     '• VAT registration requires additional assessment\n'
                     '• Keep copies of all submitted documents',
@@ -775,7 +775,7 @@ class TaxSubmitScreen extends StatelessWidget {
             Icons.arrow_back,
             color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/applications'),
         ),
         title: Text(
           'Submit to IRD',
