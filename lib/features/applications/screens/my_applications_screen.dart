@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/neumorphic_widgets.dart';
+import '../../../core/services/supabase_service.dart';
 
 /// My Applications Screen with beautiful, modern design
 class MyApplicationsScreen extends ConsumerStatefulWidget {
@@ -20,71 +21,9 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  // Enhanced mock application data
-  final List<ApplicationData> _applications = [
-    ApplicationData(
-      id: '1',
-      title: 'Company Registration Form',
-      description:
-          'Private Limited Company registration with complete documentation',
-      status: ApplicationStatus.approved,
-      submittedDate: DateTime(2025, 1, 9),
-      expectedCompletion: DateTime(2025, 1, 15),
-      progress: 100,
-      category: ApplicationCategory.companyRegistration,
-      priority: ApplicationPriority.high,
-      documentsCount: 8,
-    ),
-    ApplicationData(
-      id: '2',
-      title: 'Bank Account Opening',
-      description: 'Commercial bank account setup for business operations',
-      status: ApplicationStatus.inProgress,
-      submittedDate: DateTime(2025, 1, 8),
-      expectedCompletion: DateTime(2025, 1, 20),
-      progress: 65,
-      category: ApplicationCategory.banking,
-      priority: ApplicationPriority.medium,
-      documentsCount: 5,
-    ),
-    ApplicationData(
-      id: '3',
-      title: 'Tax Registration Certificate',
-      description: 'VAT registration and tax identification number acquisition',
-      status: ApplicationStatus.rejected,
-      submittedDate: DateTime(2025, 1, 5),
-      expectedCompletion: DateTime(2025, 1, 12),
-      progress: 0,
-      category: ApplicationCategory.taxation,
-      priority: ApplicationPriority.high,
-      documentsCount: 4,
-      rejectionReason: 'Incomplete financial statements',
-    ),
-    ApplicationData(
-      id: '4',
-      title: 'Business License Application',
-      description: 'Municipal business operating license for retail operations',
-      status: ApplicationStatus.pending,
-      submittedDate: DateTime(2025, 1, 12),
-      expectedCompletion: DateTime(2025, 1, 25),
-      progress: 0,
-      category: ApplicationCategory.licensing,
-      priority: ApplicationPriority.medium,
-      documentsCount: 6,
-    ),
-    ApplicationData(
-      id: '5',
-      title: 'Import License',
-      description: 'International trade import license for product categories',
-      status: ApplicationStatus.inProgress,
-      submittedDate: DateTime(2025, 1, 10),
-      expectedCompletion: DateTime(2025, 1, 28),
-      progress: 30,
-      category: ApplicationCategory.trade,
-      priority: ApplicationPriority.low,
-      documentsCount: 12,
-    ),
-  ];
+  // Applications loaded from backend
+  List<ApplicationData> _applications = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -97,12 +36,166 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
+    _loadApplications();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadApplications() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      print('Loading applications...');
+      final rows = await SupabaseService.getUserApplications();
+      print('Received ${rows.length} rows from database');
+
+      final mapped = await Future.wait(
+        rows.map((row) async {
+          final statusString = (row['status'] as String?) ?? 'draft';
+          final submittedAt = row['submitted_at'] as String?;
+          final String applicantId = row['applicant_id']?.toString() ?? '';
+          final String? appNumber = row['application_number']?.toString();
+
+          print(
+            'Processing application ${appNumber} for applicant ${applicantId}',
+          );
+
+          final int docCount = applicantId.isNotEmpty
+              ? await SupabaseService.countDocumentsForApplication(
+                  applicantId,
+                  appNumber,
+                )
+              : 0;
+
+          print('Found ${docCount} documents for application ${appNumber}');
+          print('Creating ApplicationData with applicantId: ${applicantId}');
+
+          return ApplicationData(
+            id: row['id'].toString(),
+            title: 'Application ${row['application_number'] ?? row['id']}',
+            description: 'Your submitted application',
+            status: _parseStatus(statusString),
+            submittedDate: submittedAt != null
+                ? DateTime.tryParse(submittedAt) ?? DateTime.now()
+                : DateTime.now(),
+            expectedCompletion: _tryParseDate(row['estimated_completion_date']),
+            progress: _computeProgress(
+              row['completed_steps'],
+              row['total_steps'],
+            ),
+            category: ApplicationCategory.companyRegistration,
+            priority: ApplicationPriority.medium,
+            documentsCount: docCount,
+            rejectionReason: row['rejection_reason'] as String?,
+            applicantId: applicantId,
+          );
+        }),
+      );
+
+      // Fallback to storage bucket if there are no DB-backed applications
+      if (mapped.isEmpty) {
+        final docs = await SupabaseService.listUserDocuments();
+        if (docs.isNotEmpty) {
+          // Use the most recent file time as submitted date if available
+          final createdTimes =
+              docs.map((d) => d.createdAt).whereType<DateTime>().toList()
+                ..sort();
+          final DateTime submitted = createdTimes.isNotEmpty
+              ? createdTimes.last
+              : DateTime.now();
+
+          mapped.add(
+            ApplicationData(
+              id: 'storage-${submitted.millisecondsSinceEpoch}',
+              title: 'Your Submitted Documents',
+              description: 'Files uploaded to your application folder',
+              status: ApplicationStatus.pending,
+              submittedDate: submitted,
+              expectedCompletion: null,
+              progress: 0,
+              category: ApplicationCategory.companyRegistration,
+              priority: ApplicationPriority.medium,
+              documentsCount: docs.length,
+              rejectionReason: null,
+              applicantId: null, // No specific applicant for fallback
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        _applications = mapped;
+      });
+    } catch (e) {
+      // If anything fails, show empty friendly state
+      setState(() {
+        _applications = [];
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  int _computeProgress(dynamic completed, dynamic total) {
+    final int c = (completed is int)
+        ? completed
+        : int.tryParse('${completed ?? 0}') ?? 0;
+    final int t = (total is int) ? total : int.tryParse('${total ?? 0}') ?? 0;
+    if (t <= 0) return 0;
+    final pct = ((c / t) * 100).clamp(0, 100);
+    return pct.round();
+  }
+
+  ApplicationStatus _parseStatus(String raw) {
+    switch (raw.toLowerCase()) {
+      case 'draft':
+        return ApplicationStatus.pending;
+      case 'submitted':
+        return ApplicationStatus.pending;
+      case 'document_review':
+        return ApplicationStatus.inProgress;
+      case 'additional_info_required':
+        return ApplicationStatus.pending;
+      case 'approved':
+      case 'completed':
+        return ApplicationStatus.approved;
+      case 'rejected':
+        return ApplicationStatus.rejected;
+      default:
+        return ApplicationStatus.pending;
+    }
+  }
+
+  DateTime? _tryParseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  void _showApplicationDetails(
+    BuildContext context,
+    ApplicationData application,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) =>
+          ApplicationDetailsBottomSheet(application: application),
+    );
   }
 
   @override
@@ -380,6 +473,17 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
   }
 
   Widget _buildApplicationsList(List<ApplicationData> applications) {
+    if (_isLoading) {
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
     if (applications.isEmpty) {
       return _buildEmptyState();
     }
@@ -407,7 +511,7 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
       padding: const EdgeInsets.all(20),
       tint: tint,
       onTap: () {
-        // TODO: Navigate to application detail
+        _showApplicationDetails(context, application);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,7 +780,8 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen>
             NeumorphicButton(
               text: 'Start New Application',
               onPressed: () {
-                // TODO: Navigate to new application
+                // Navigate to the start of business registration flow
+                context.go('/business-registration');
               },
             ),
           ],
@@ -1018,6 +1123,7 @@ class ApplicationData {
   final ApplicationPriority priority;
   final int documentsCount;
   final String? rejectionReason;
+  final String? applicantId; // Store applicant ID for fetching documents
 
   ApplicationData({
     required this.id,
@@ -1031,6 +1137,7 @@ class ApplicationData {
     required this.priority,
     required this.documentsCount,
     this.rejectionReason,
+    this.applicantId,
   });
 }
 
@@ -1099,3 +1206,326 @@ enum ApplicationPriority {
 
 /// Application Filter Enum
 enum ApplicationFilter { all, pending, inProgress, approved, rejected }
+
+/// Application Details Bottom Sheet
+class ApplicationDetailsBottomSheet extends StatefulWidget {
+  final ApplicationData application;
+
+  const ApplicationDetailsBottomSheet({super.key, required this.application});
+
+  @override
+  State<ApplicationDetailsBottomSheet> createState() =>
+      _ApplicationDetailsBottomSheetState();
+}
+
+class _ApplicationDetailsBottomSheetState
+    extends State<ApplicationDetailsBottomSheet> {
+  List<dynamic> _documents = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDocuments();
+  }
+
+  Future<void> _loadDocuments() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Use the applicant ID stored in the application data
+      final applicantId = widget.application.applicantId;
+      print('Loading documents for applicant: $applicantId');
+
+      final docs = applicantId != null
+          ? await SupabaseService.listDocumentsForApplicant(applicantId)
+          : await SupabaseService.listUserDocuments();
+
+      setState(() {
+        _documents = docs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading documents: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      maxChildSize: 0.9,
+      minChildSize: 0.3,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.application.title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Status and Progress
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(
+                        widget.application.status,
+                      ).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getStatusIcon(widget.application.status),
+                          size: 16,
+                          color: _getStatusColor(widget.application.status),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.application.status.displayName,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _getStatusColor(widget.application.status),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${widget.application.documentsCount} documents',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Documents Section
+              Text(
+                'Uploaded Documents',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Documents List
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _documents.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No documents found',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: _documents.length,
+                        itemBuilder: (context, index) {
+                          final doc = _documents[index];
+                          return _buildDocumentItem(doc);
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDocumentItem(dynamic document) {
+    final String name = document.name ?? 'Unknown Document';
+    final DateTime? updatedAt = document.updatedAt is String
+        ? DateTime.tryParse(document.updatedAt)
+        : document.updatedAt as DateTime?;
+    final int? size = document.metadata?['size'];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.borderLight
+              : AppColors.borderLightTheme,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(_getFileIcon(name), color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _formatFileName(name),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatFileInfo(size, updatedAt),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.visibility_outlined, color: AppColors.primary, size: 20),
+        ],
+      ),
+    );
+  }
+
+  IconData _getFileIcon(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return Icons.image;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  String _formatFileName(String name) {
+    // Remove timestamp and clean up the file name
+    return name
+        .replaceAll(RegExp(r'_\d+_'), ' ')
+        .replaceAll('_', ' ')
+        .split('.')
+        .first
+        .trim();
+  }
+
+  String _formatFileInfo(int? size, DateTime? updatedAt) {
+    final sizeText = size != null ? _formatFileSize(size) : '';
+    final dateText = updatedAt != null ? _formatDate(updatedAt) : '';
+
+    if (sizeText.isNotEmpty && dateText.isNotEmpty) {
+      return '$sizeText • $dateText';
+    } else if (sizeText.isNotEmpty) {
+      return sizeText;
+    } else if (dateText.isNotEmpty) {
+      return dateText;
+    }
+    return '';
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (difference < 7) {
+      return '$difference days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  Color _getStatusColor(ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.approved:
+        return const Color(0xFF10B981);
+      case ApplicationStatus.inProgress:
+        return const Color(0xFFF59E0B);
+      case ApplicationStatus.rejected:
+        return const Color(0xFFEF4444);
+      case ApplicationStatus.pending:
+        return const Color(0xFF6B7280);
+    }
+  }
+
+  IconData _getStatusIcon(ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.approved:
+        return Icons.check_circle;
+      case ApplicationStatus.inProgress:
+        return Icons.timelapse;
+      case ApplicationStatus.rejected:
+        return Icons.cancel;
+      case ApplicationStatus.pending:
+        return Icons.schedule;
+    }
+  }
+}

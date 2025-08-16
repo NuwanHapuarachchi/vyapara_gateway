@@ -226,6 +226,79 @@ class SupabaseService {
     }
   }
 
+  /// List documents for a specific applicant folder (by user id)
+  static Future<List<FileObject>> listDocumentsForApplicant(
+    String applicantId,
+  ) async {
+    try {
+      final String folder = '$applicantId/';
+      print('Listing documents for applicant: $applicantId');
+      final results = await _client.storage
+          .from(_documentsBucket)
+          .list(path: folder, searchOptions: const SearchOptions());
+      print('Found ${results.length} files for applicant $applicantId');
+      return results;
+    } catch (e) {
+      print('Error listing documents for $applicantId: $e');
+      return [];
+    }
+  }
+
+  /// Recursively count files for an applicant's folder
+  static Future<int> countDocumentsForApplicantRecursive(
+    String applicantId,
+  ) async {
+    try {
+      return await _countFilesInPath('$applicantId/');
+    } catch (e) {
+      print('Error counting documents for $applicantId: $e');
+      return 0;
+    }
+  }
+
+  /// Prefer counting inside applicantId/applicationNumber/ if present,
+  /// otherwise fall back to applicantId/ root
+  static Future<int> countDocumentsForApplication(
+    String applicantId,
+    String? applicationNumber,
+  ) async {
+    try {
+      if (applicationNumber != null && applicationNumber.isNotEmpty) {
+        final byApp = await _countFilesInPath(
+          '$applicantId/$applicationNumber/',
+        );
+        if (byApp > 0) return byApp;
+      }
+      return await countDocumentsForApplicantRecursive(applicantId);
+    } catch (e) {
+      print('Error counting docs for $applicantId/$applicationNumber: $e');
+      return 0;
+    }
+  }
+
+  static Future<int> _countFilesInPath(String path, {int depth = 0}) async {
+    // Guard against excessive recursion
+    if (depth > 5) return 0;
+
+    try {
+      print('Listing files at path: $path in bucket: $_documentsBucket');
+      final items = await _client.storage
+          .from(_documentsBucket)
+          .list(path: path, searchOptions: const SearchOptions());
+
+      print('Found ${items.length} items at path: $path');
+      for (final item in items) {
+        print('  - ${item.name}');
+      }
+
+      // For our structure, listing the applicant folder returns the files directly
+      return items.length;
+    } catch (e) {
+      print('Error listing files at path $path: $e');
+      return 0;
+    }
+  }
+
   /// Upload document bytes and return public URL (if bucket is public)
   static Future<String?> uploadDocumentBytes({
     required Uint8List data,
@@ -969,6 +1042,42 @@ class SupabaseService {
     } catch (e) {
       print('Error creating business registration: $e');
       return false;
+    }
+  }
+
+  /// =============================
+  /// Applications (Business Applications for current user)
+  /// =============================
+  static Future<List<Map<String, dynamic>>> getUserApplications() async {
+    try {
+      final String? userId = SupabaseConfig.userId;
+      print('Getting applications for user: $userId');
+      if (userId == null) {
+        print('No user ID found');
+        return [];
+      }
+
+      // Fetch business applications for the authenticated user
+      print('Querying business_applications table...');
+      final response = await _client
+          .from('business_applications')
+          .select(
+            'id, application_number, status, submitted_at, completed_steps, total_steps, rejection_reason, estimated_completion_date, applicant_id',
+          )
+          .eq('applicant_id', userId)
+          .order('submitted_at', ascending: false);
+
+      print('Found ${response.length} applications in database');
+      for (final app in response) {
+        print(
+          '  - ${app['application_number']}: ${app['status']} (applicant: ${app['applicant_id']})',
+        );
+      }
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching user applications: $e');
+      return [];
     }
   }
 }
